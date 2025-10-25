@@ -32,13 +32,13 @@ DATABASE_URL="mysql://root:@localhost:3306/volunteerhub"
 JWT_SECRET="volunteerhub_secret"
 PORT=4000
 
-Tạo database & migrate
+Tạo database & migrate:
 npx prisma migrate dev --name init
 
-Seed dữ liệu (tạo roles mặc định)
+Seed dữ liệu (tạo roles mặc định):
 npx ts-node prisma/seed.ts
 
-Chạy server
+Chạy server:
 npm run dev
 
 Server chạy tại:
