@@ -1,0 +1,27 @@
+.bg-pink {
+  background-color: rgb(216, 106, 119) !important;
+}
+.bg-grey {
+  background-color: #D9E0E0;
+}
+.btn-pink {
+  background-color: rgb(232, 170, 179);
+  color: white;                 /* chữ trắng */
+  border: none;                 /* bỏ viền mặc định */
+  transition: all 0.2s ease;    /* hover mượt hơn */
+}
+
+.btn-pink:hover {
+  background-color: rgb(228, 136, 146); /* màu hover đậm hơn */
+  color: white;                         /* giữ màu chữ */
+}
+
+.btn-pink:active {
+  background-color: rgb(210, 110, 120); /* khi nhấn */
+  transform: scale(0.97);               /* hiệu ứng nhấn nhẹ */
+}
+
+.btn-pink:focus {
+  box-shadow: 0 0 0 0.2rem rgba(232, 170, 179, 0.5); /* viền sáng nhẹ khi focus */
+  outline: none;
+}
