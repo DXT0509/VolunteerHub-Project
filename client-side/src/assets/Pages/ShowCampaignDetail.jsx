@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert, Slide } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import './ShowCampaignDetail.css';
@@ -8,6 +10,10 @@ import './ShowCampaignDetail.css';
  * Props: { title, category, location, deadline, capacity, manager_name, manager_mail, banner_url }
  * Layout: left large banner image, right column with nicely formatted information.
  */
+const SlideFromTop = React.forwardRef(function SlideFromTop(props, ref) {
+  return <Slide ref={ref} {...props} direction="down" timeout={{ enter: 400, exit: 350 }} />;
+});
+
 function ShowCampaignDetail() {
   const fmtDeadline = (d) => {
   if (!d) return 'Không có thời hạn';
@@ -22,8 +28,12 @@ function ShowCampaignDetail() {
 };
   const { id } = useParams();
   const [event, setEvent] = useState(null);
+  const [userRegistrations, setUserRegistrations] = useState([]); 
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [warnMsg, setWarnMsg] = useState("");
+  const [showWarn, setShowWarn] = useState(false);
 
   // Refs for animation targets (declare before any early return)
   const leftRef = useRef(null);
@@ -47,12 +57,58 @@ function ShowCampaignDetail() {
       .then(data => setEvent(data))
       .catch(err => console.error(err));
   }, [id, allowed]);
+  useEffect(() => {
+    fetch(`http://localhost:4000/registrations/my`,{
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.json())
+    .then(data => setUserRegistrations(data))
+    .catch(err => console.error(err));
+  }, [allowed]);
+
+  function getRegistrationStatus(eventId) {
+    const registration = userRegistrations.find(reg => reg.event_id === eventId);
+    return registration ? registration.status : 'not_registered';
+  }
+
+  async function handleCancel(eventId) {
+    try {
+      await fetch(`http://localhost:4000/registrations/${eventId}/register`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      // Refresh registrations list after cancellation
+      const res = await fetch(`http://localhost:4000/registrations/my`,{
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await res.json();
+      setUserRegistrations(data);
+    } catch (e) {
+      console.error('Cancel failed', e);
+    }
+  }
+
+  const openConfirm = () => setConfirmOpen(true);
+  const closeConfirm = () => setConfirmOpen(false);
+  const confirmCancel = async () => {
+    closeConfirm();
+    await handleCancel(event.id);
+  };
+
 
   const bannerFallback = (
     <div className="scd-fallback">
       <span>Không có ảnh</span>
     </div>
   );
+  // use the top-level forwardRef SlideFromTop for Snackbar transitions
   
 
   useEffect(() => {
@@ -80,6 +136,36 @@ function ShowCampaignDetail() {
 
   return (
     <div className="scd-container">
+      {/* Top-center alert like Register.jsx */}
+      <Snackbar
+        open={showWarn}
+        onClose={(_, reason) => {
+          if (reason === 'clickaway') return;
+          setShowWarn(false);
+        }}
+        autoHideDuration={1000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        TransitionComponent={SlideFromTop}
+        sx={{ mt: 2 }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          sx={{
+            px: 2,
+            py: 1,
+            borderRadius: 1.5,
+            boxShadow: 2,
+            width: '420px',
+            backgroundColor: '#facc15',
+            color: '#78350f',
+            '& .MuiAlert-icon': { mr: 1 },
+            '& .MuiAlert-message': { fontSize: '0.95rem', fontWeight: 500 },
+          }}
+        >
+          {warnMsg}
+        </Alert>
+      </Snackbar>
       <title>Campaign Details</title>
       <div ref={leftRef} className="scd-left scd-animate">
         {event.banner_url ? (
@@ -137,18 +223,63 @@ function ShowCampaignDetail() {
           </div>
         </div>
         <div className="scd-actions">
+          {(() => {
+            const status = getRegistrationStatus(event.id);
+            if (status === 'pending') {
+              return (
+                <Button
+                  variant="contained"
+                  onClick={() => {setConfirmOpen(true);}}
+                  sx={{
+                    bgcolor: '#facc15',
+                    color: '#78350f',
+                    cursor: 'default',
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#facc15' }
+                  }}
+                >
+                  <WarningAmberIcon sx={{ mr: 1 }} /> Đang chờ duyệt đơn đăng ký
+                </Button>
+              );
+            }
+            if (status === 'approved') {
+              return (
+                <Button
+                  variant="contained"
+                  onClick={() => {setConfirmOpen(true);}}
+                  sx={{
+                    bgcolor: '#dc2626',
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#b91c1c' }
+                  }}
+                >
+                  <CancelIcon sx={{ mr: 1 }} /> Đã tham gia, hủy đăng ký
+                </Button>
+              );
+            }
+            return (
+              <Button
+                className="scd-join-btn"
+                variant="contained"
+                onClick={() => navigate(`/bevolunteer/${id}`)}
+                sx={{ bgcolor: '#16a34a', textTransform: 'none', '&:hover': { bgcolor: '#15803d' } }}
+              >
+                Đăng ký tham gia
+              </Button>
+            );
+          })()}
           <Button
-            className="scd-join-btn"
+            style={{ marginLeft: '85px' }}
             variant="contained"
-            onClick={() => navigate(`/bevolunteer/${id}`)}
-            sx={{ bgcolor: '#16a34a', textTransform: 'none', '&:hover': { bgcolor: '#15803d' } }}
-          >
-            Đăng ký tham gia
-          </Button>
-          <Button
-          style={{ marginLeft: '85px' }}
-            variant="contained"
-            onClick={() => navigate(`/exchange-channel/${id}`)}
+            onClick={() => {
+              const status = getRegistrationStatus(event.id);
+              if (status !== 'approved') {
+                setWarnMsg('Bạn chưa tham gia sự kiện');
+                setShowWarn(true);
+                return;
+              }
+              navigate(`/exchange-channel/${id}`);
+            }}
             sx={{
               ml: 2,
               bgcolor: '#8d919aff',
@@ -156,7 +287,6 @@ function ShowCampaignDetail() {
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
-              
               gap: 1,
               '&:hover': { bgcolor: '#767a7eff' }
             }}
@@ -164,6 +294,23 @@ function ShowCampaignDetail() {
             <span style={{ fontWeight: 700 }}>→</span> Truy cập kênh trao đổi
           </Button>
         </div>
+        {/* Confirm cancellation dialog */}
+        <Dialog open={confirmOpen} onClose={closeConfirm}>
+          <DialogTitle>Xác nhận hủy đăng ký tham gia sự kiện</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Bạn có chắc chắn muốn hủy đăng ký tham gia sự kiện này không?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeConfirm} variant="contained" sx={{ bgcolor: '#9ca3af', '&:hover': { bgcolor: '#6b7280' }, textTransform: 'none' }}>
+              Hủy
+            </Button>
+            <Button onClick={confirmCancel} variant="contained" sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, textTransform: 'none' }} autoFocus>
+              Xác nhận
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

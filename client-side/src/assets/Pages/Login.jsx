@@ -3,12 +3,14 @@ import "./Login.css";
 import { IonIcon } from "@ionic/react";
 import { mail, lockClosed } from "ionicons/icons";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button, Checkbox, FormControlLabel, TextField, InputAdornment, Box, Grid, Alert, Slide, Fade, Snackbar } from "@mui/material";
 function SlideFromTop(props) {
   // Always slide in from the top ('down'); on exit, MUI slides in the opposite direction -> up
   return <Slide {...props} direction="down" timeout={600} />;
 }
 const Login = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showAlert, setShowAlert] = useState(false);
@@ -19,6 +21,12 @@ const Login = () => {
       const t = requestAnimationFrame(() => setAnimateForm(true));
       return () => cancelAnimationFrame(t);
     }, []);
+    useEffect(() => {
+        const check = localStorage.getItem('token');
+        if (check) {
+          navigate('/', { replace: true });
+        }
+      }, [navigate]);
     const handleLogin = async (e) => {
     e.preventDefault();
     setError("");

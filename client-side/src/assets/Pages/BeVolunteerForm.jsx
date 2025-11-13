@@ -23,11 +23,11 @@ const BeVolunteerForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState(false);
-
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
   // Guard: must be logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    
     if (!token || !userStr) {
       navigate('/login', { replace: true });
     } else {
@@ -79,13 +79,28 @@ const BeVolunteerForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const v = validate();
     setErrors(v);
     if (Object.keys(v).length === 0) {
+      
+      const res = await fetch(`http://localhost:4000/registrations/${id}/register`, {
+        method: 'POST',
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLoadError(data?.error || "Đăng ký thất bại");
+        setSubmitted(false);
+        return;
+      }
       setSubmitted(true);
-      // In real app: send to API
+      sessionStorage.setItem('registrationSuccess', 'true');
+      navigate('/registration-success', { state: { fromRegister: true } });
       console.log('Volunteer Registration:', form);
     }
   };

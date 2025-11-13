@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const Navbar = () => {
   const [loggedIn, setLoggedIn] = useState(false);
+  const navRef = useRef(null);
 
   const checkAuth = () => {
     try {
@@ -29,6 +30,17 @@ const Navbar = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // Expose navbar height as CSS variable for layout calculations
+  useEffect(() => {
+    const applyVar = () => {
+      const h = navRef.current ? navRef.current.offsetHeight : 0;
+      if (h) document.documentElement.style.setProperty('--navbar-h', `${h}px`);
+    };
+    applyVar();
+    window.addEventListener('resize', applyVar);
+    return () => window.removeEventListener('resize', applyVar);
+  }, []);
+
   const handleLogout = () => {
     try {
       ['token', 'accessToken', 'user', 'Authorization'].forEach((k) => {
@@ -41,7 +53,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-danger px-4 justify-content-between w-100 bg-pink">
+    <nav ref={navRef} className="navbar navbar-expand-lg navbar-dark bg-danger px-4 justify-content-between w-100 bg-pink">
       <div className="d-flex align-items-center">
         <img
           src="https://userpic.codeforces.org/1657001/title/7b916a641c436c8c.jpg"

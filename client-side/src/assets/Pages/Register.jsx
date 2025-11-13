@@ -43,7 +43,12 @@ const Register = () => {
     const t = requestAnimationFrame(() => setAnimateForm(true));
     return () => cancelAnimationFrame(t);
   }, []);
-
+  useEffect(() => {
+    const check = localStorage.getItem('token');
+    if (check) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
   const handleSubmit = async(e) => {
     e.preventDefault();
     setError("");
@@ -65,10 +70,10 @@ const Register = () => {
         if (!res.ok) {
           throw new Error(data?.error || "Đăng ký thất bại");
         }
-  // Đặt cờ đã đăng ký thành công (sessionStorage) để bảo vệ route
-  sessionStorage.setItem('registeredSuccess', 'true');
-  // Điều hướng tới trang thông báo thành công kèm state để tăng độ tin cậy
-  navigate('/register-success', { state: { fromRegister: true } });
+        // Đặt cờ đã đăng ký thành công (sessionStorage) để bảo vệ route
+        sessionStorage.setItem('registeredSuccess', 'true');
+        // Điều hướng tới trang thông báo thành công kèm state để tăng độ tin cậy
+        navigate('/register-success', { state: { fromRegister: true } });
     }
   catch (err) {
     setError(err.message || "Có lỗi xảy ra");

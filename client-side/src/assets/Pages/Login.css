@@ -3,15 +3,16 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 100vh;
-        padding: 32px 16px;
+        min-height: calc(100vh - var(--navbar-h, 0px)); /* subtract navbar height */
+        padding: 16px 16px; /* reduce vertical padding to avoid overflow */
         background:
             linear-gradient(135deg, rgba(245,247,250,0.78), rgba(226,236,247,0.78)),
             url('../image/community.jpg');
         background-position: center;
         background-size: cover;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-attachment: scroll; /* prevent subtle extra height from fixed */
+        box-sizing: border-box;
 }
 
 /* Card container */
@@ -19,15 +20,16 @@
     position: relative;
     width: 100%;
     max-width: 420px;
-    min-height: 420px; /* giảm thêm chiều cao tổng thể */
+    min-height: 380px; /* slightly smaller baseline */
     background: #ffffff; /* solid white background */
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 20px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.12);
     display: flex;
-    justify-content: center;
-    align-items: flex-start; /* đưa nội dung lên trên giúp giảm khoảng trống đáy */
-    overflow: hidden; /* tránh tràn tạo cảm giác cao hơn */
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow: hidden; /* avoid scrollbars inside */
     transition: box-shadow .25s ease, transform .25s ease;
 }
 /* Auth form appear animation similar to BeVolunteerForm */
