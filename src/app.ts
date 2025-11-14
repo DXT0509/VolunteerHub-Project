@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import dotevn from "dotenv";
 import authRoutes from "./modules/auth/auth.routes";
@@ -16,6 +17,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files (multer currently saves into src/uploads)
+app.use(
+	"/uploads",
+	express.static(path.join(__dirname, "uploads"))
+);
 
 app.get("/", (req, res) => res.send("VolunteerHub API running"));
 app.use("/auth", authRoutes);

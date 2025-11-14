@@ -1,11 +1,16 @@
 import React from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, Avatar, Divider, Snackbar, Alert, Slide, IconButton, Tooltip } from '@mui/material';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useMemo } from 'react';
 
@@ -18,7 +23,9 @@ function ShowChannel() {
     const [data, setData] = useState(null);
     const [openCreate, setOpenCreate] = useState(false);
     const [content, setContent] = useState('');
-    const [attachments, setAttachments] = useState(['']);
+    // removed attachments URL fields: users will upload files from their machine only
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [previews, setPreviews] = useState([]);
     const [openComments, setOpenComments] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
     const [alertMessage, setAlertMessage] = useState('');
@@ -29,6 +36,10 @@ function ShowChannel() {
     const [allowed, setAllowed] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deletePostId, setDeletePostId] = useState(null);
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -63,9 +74,10 @@ function ShowChannel() {
             navigate(`/events/${id}`, { replace: true, state: { reason: 'check_failed' } });
         });
     }, [id, navigate]);
-    const fetchPosts = useCallback(() => {
+    const fetchPostsPaged = useCallback((p) => {
         const token = localStorage.getItem('token');
-        fetch(`http://localhost:4000/channels/${id}/posts`, {
+        const targetPage = typeof p === 'number' ? p : page;
+        fetch(`http://localhost:4000/channels/${id}/posts?page=${targetPage}&pageSize=${pageSize}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -73,45 +85,97 @@ function ShowChannel() {
             }
         })
         .then(res => res.json())
-        .then(data => setData(data))
+        .then(d => {
+            setData(d);
+            setPage(targetPage);
+        })
         .catch(err => console.error(err));
-    }, [id]);
+    }, [id, page, pageSize]);
+
+    // Fetch when channel id or page changes
     useEffect(() => {
-        fetchPosts();
-    }, [fetchPosts, id]);
+        fetchPostsPaged(page);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id, page]);
+
+    // Scroll to top immediately when page changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+    }, [page]);
 
     const openForm = useCallback(() => {
         // Reset previous form state when opening
         setContent('');
-        setAttachments(['']);
         setOpenCreate(true);
     }, []);
     const closeForm = useCallback(() => setOpenCreate(false), []);
+    // generate image previews for selectedFiles using object URLs
+    useEffect(() => {
+        if (!selectedFiles || selectedFiles.length === 0) {
+            // cleanup any existing previews
+            setPreviews(prev => {
+                prev.forEach(u => URL.revokeObjectURL(u));
+                return [];
+            });
+            return;
+        }
+        const urls = selectedFiles.map(f => URL.createObjectURL(f));
+        // revoke previous previews first
+        setPreviews(prev => {
+            prev.forEach(u => URL.revokeObjectURL(u));
+            return urls;
+        });
+        // cleanup when unmount or files change
+        return () => {
+            urls.forEach(u => URL.revokeObjectURL(u));
+        };
+    }, [selectedFiles]);
     const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
-        const cleanedAttachments = attachments.filter(u => u && u.trim() !== '');
-        if (!content.trim() && cleanedAttachments.length === 0) {
+        e?.preventDefault();
+        // fallback: if selectedFiles state is empty try to read the specific post file input directly
+        let filesToSend = selectedFiles;
+        if ((!filesToSend || filesToSend.length === 0) && typeof document !== 'undefined') {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                filesToSend = Array.from(fileInput.files || []);
+                setSelectedFiles(filesToSend);
+            }
+        }
+
+        if (!content.trim() && (!filesToSend || filesToSend.length === 0)) {
             // Client-side early validation matches backend rule
             setAlertType('warning');
             setAlertMessage('Bài viết phải có nội dung hoặc ít nhất một tệp đính kèm');
             setShowAlert(true);
             return;
         }
+
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:4000/channels/${id}/posts`, {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ content, attachments: cleanedAttachments })
-        });
+        let res;
+        try {
+            // Always send FormData. This avoids accidentally sending JSON and missing files.
+            const form = new FormData();
+            form.append('content', content || '');
+            (filesToSend || []).forEach((f) => form.append('files', f));
+            res = await fetch(`http://localhost:4000/channels/${id}/posts`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: form
+            });
+        } catch (err) {
+            setAlertType('warning');
+            setAlertMessage('Lỗi khi tải lên ảnh');
+            setShowAlert(true);
+            return;
+        }
+
         if (res.ok) {
             setAlertType('success');
             setAlertMessage('Đăng bài thành công');
             setShowAlert(true);
         } else {
-            // Backend error handling
             try {
                 const data = await res.json();
                 const msg = data?.error || 'Đăng bài thất bại';
@@ -125,12 +189,14 @@ function ShowChannel() {
             }
             return; // Don't refresh/close modal on failure
         }
-        fetchPosts();
+
+        // After create, go to first page to see newest post
+        setPage(1);
+        fetchPostsPaged(1);
         closeForm();
-    }, [attachments, closeForm, content, fetchPosts, id]);
-    
-    const addAttachmentField = () => setAttachments(prev => [...prev, '']);
-    const removeAttachmentField = (index) => setAttachments(prev => prev.filter((_, i) => i !== index));
+        // reset file inputs
+        setSelectedFiles([]);
+    }, [closeForm, content, fetchPostsPaged, id]);
 
     const handleToggleLike = useCallback(async (postId) => {
         try {
@@ -281,11 +347,8 @@ function ShowChannel() {
                 }
             });
             if (!res.ok) throw new Error('Xóa bài viết thất bại');
-            // Update list and selected post
-            setData(prev => {
-                if (!prev?.items) return prev;
-                return { ...prev, items: prev.items.filter(p => p.id !== deletePostId) };
-            });
+            // Refresh current page to keep counts and pagination in sync
+            fetchPostsPaged(page);
             setSelectedPost(prev => (prev && prev.id === deletePostId) ? null : prev);
             setOpenComments(prev => (prev && deletePostId) ? false : prev);
             setAlertType('success');
@@ -298,9 +361,11 @@ function ShowChannel() {
         } finally {
             closeDeleteConfirm();
         }
-    }, [deletePostId, closeDeleteConfirm]);
+    }, [deletePostId, closeDeleteConfirm, fetchPostsPaged, page]);
 
-    function formatRelative(timeString){
+    // memoize formatRelative to avoid creating a new function on every render
+    // (new function identity caused memoized children to re-render and produced typing lag)
+    const formatRelative = useCallback((timeString) => {
         try {
             const created = new Date(timeString);
             const now = new Date();
@@ -311,13 +376,19 @@ function ShowChannel() {
             const month = 30 * day; // approximate
             const year = 365 * day; // approximate
             if (diffMs < minute) return 'vừa xong';
-            if (diffMs < hour) return `${Math.floor(diffMs / minute)} phút trước`; 
+            if (diffMs < hour) return `${Math.floor(diffMs / minute)} phút trước`;
             if (diffMs < day) return `${Math.floor(diffMs / hour)} giờ trước`;
             if (diffMs < month) return `${Math.floor(diffMs / day)} ngày trước`;
             if (diffMs < year) return `${Math.floor(diffMs / month)} tháng trước`;
             return `${Math.floor(diffMs / year)} năm trước`;
         } catch { return ''; }
-    }
+    }, []);
+
+    // Paging helpers
+    const totalItems = data?.total;
+    const totalPages = totalItems ? Math.max(1, Math.ceil(totalItems / pageSize)) : null;
+    const isFirstPage = page <= 1;
+    const isLastPage = totalPages != null ? page >= totalPages : ((data?.items?.length || 0) < pageSize);
 
     return (
         <Box sx={{ p: 2 }}>
@@ -386,34 +457,67 @@ function ShowChannel() {
                             minRows={3}
                             fullWidth
                         />
-                        {attachments.map((url, idx) => (
-                            <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                <TextField
-                                    label={`File URL ${idx + 1}`}
-                                    name={`file_url_${idx}`}
-                                    value={url}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setAttachments(prev => prev.map((u, i) => i === idx ? val : u));
-                                    }}
-                                    fullWidth
-                                    placeholder="https://..."
-                                />
-                                {attachments.length > 1 && (
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={() => removeAttachmentField(idx)}
-                                        sx={{ whiteSpace: 'nowrap', textTransform: 'none' }}
-                                    >
-                                        Xóa
-                                    </Button>
+                        {/* Removed manual File URL fields - users upload images from their machine using the input below */}
+                        <Box sx={{ mt: 1 }}>
+                            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Tải ảnh từ máy tính</Typography>
+                            {/* hidden native input */}
+                            <input
+                                id="file-input"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                    const files = e.target.files ? Array.from(e.target.files) : [];
+                                    if (files.length === 0) return;
+                                    setSelectedFiles(prev => ([...(prev || []), ...files]));
+                                }}
+                            />
+
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<UploadFileIcon />}
+                                    onClick={() => document.getElementById('file-input')?.click()}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Thêm tệp
+                                </Button>
+                                
+                                {selectedFiles.length > 0 && (
+                                    <Button variant="text" onClick={() => setSelectedFiles([])} sx={{ textTransform: 'none', ml: 'auto' }}>Xóa tất cả</Button>
                                 )}
                             </Box>
-                        ))}
-                        <Button variant="text" onClick={addAttachmentField} sx={{ alignSelf: 'flex-start', textTransform: 'none' }}>
-                            + Thêm file URL
-                        </Button>
+
+                            {/* Filename list removed - previews show instead */}
+                            {/* Image previews - one per row */}
+                            {previews && previews.length > 0 && (
+                                <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    {previews.map((src, i) => (
+                                        <Box key={`prev-wrap-${i}`} sx={{ position: 'relative', width: '100%' }}>
+                                            <IconButton
+                                                aria-label={`remove-${i}`}
+                                                size="small"
+                                                onClick={() => {
+                                                    // revoke object URL and remove file from state
+                                                    try { URL.revokeObjectURL(previews[i]); } catch (e) {}
+                                                    setSelectedFiles(prev => prev.filter((_, idx) => idx !== i));
+                                                }}
+                                                sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2, bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.55)' } }}
+                                            >
+                                                <DeleteOutlineIcon fontSize="small" />
+                                            </IconButton>
+                                            <Box
+                                                component="img"
+                                                src={src}
+                                                alt={`preview-${i}`}
+                                                sx={{ width: '100%', borderRadius: 1.5, objectFit: 'contain', maxHeight: 360, display: 'block' }}
+                                            />
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+                        </Box>
                     </Box>
                 </DialogContent>
                 <DialogActions>
@@ -435,6 +539,19 @@ function ShowChannel() {
                 currentUserId={currentUserId}
                 onRequestDelete={requestDeletePost}
             />
+
+            {/* Pagination controls */}
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <IconButton aria-label="prev-page" onClick={() => !isFirstPage && setPage(p => Math.max(1, p - 1))} disabled={isFirstPage}>
+                    <NavigateBeforeIcon />
+                </IconButton>
+                <Typography variant="body2" sx={{ minWidth: 100, textAlign: 'center' }}>
+                    Trang {page}{totalPages ? ` / ${totalPages}` : ''}
+                </Typography>
+                <IconButton aria-label="next-page" onClick={() => !isLastPage && setPage(p => p + 1)} disabled={isLastPage}>
+                    <NavigateNextIcon />
+                </IconButton>
+            </Box>
 
             {/* Focused post with comments (memoized) */}
             <CommentsDialog
@@ -497,7 +614,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
     return (
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
             {items?.map((post) => (
-                <Box key={post.id} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, background: '#fff', p: 2, width: '100%', maxWidth: 600 }}>
+                <Box key={post.id} onClick={() => onOpenComments(post)} sx={{ border: '1px solid #e5e7eb', borderRadius: 2, background: '#fff', p: 2, width: '100%', maxWidth: 600, cursor: 'pointer' }}>
                     {/* Header: avatar + name + time + (optional delete) */}
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -517,7 +634,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
                         </Box>
                         {post.author?.id === currentUserId && (
                             <Tooltip title="Xóa bài">
-                                <IconButton size="small" onClick={() => onRequestDelete(post.id)}>
+                                <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRequestDelete(post.id); }}>
                                     <DeleteOutlineIcon sx={{ color: '#6b7280' }} />
                                 </IconButton>
                             </Tooltip>
@@ -526,13 +643,74 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
                     {post.content && (
                         <Typography sx={{ mt: 1.25, color: '#111827' }}>{post.content}</Typography>
                     )}
-                    {/* Image placeholder */}
-                    <Box
-                        component="img"
-                        src="https://userpic.codeforces.org/747128/title/188117d8deb6f127.jpg"
-                        alt="post"
-                        sx={{ width: '100%', mt: 1.25, borderRadius: 1.5, objectFit: 'cover' }}
-                    />
+                    {/* Attachments preview:
+                        - 1 image: full width
+                        - 2 images: side-by-side, each half width
+                        - >=3 images: left half = image 1, right half = image 2 but darkened with overlay "+x" (x = remaining images beyond the two shown)
+                        Clicking the post opens the comments/dialog which shows all images in full.
+                    */}
+                    {post.attachments && post.attachments.length > 0 && (
+                        <Box sx={{ mt: 1.25, width: '100%' }}>
+                            {post.attachments.length === 1 && post.attachments[0]?.file_url && (
+                                <Box
+                                    component="img"
+                                    src={post.attachments[0].file_url}
+                                    alt="post"
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    sx={{ width: '100%', borderRadius: 1.5, objectFit: 'cover' }}
+                                />
+                            )}
+                            {post.attachments.length === 2 && (
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Box
+                                        component="img"
+                                        src={post.attachments[0]?.file_url}
+                                        alt="post-0"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        sx={{ width: '50%', borderRadius: 1.25, objectFit: 'cover' }}
+                                    />
+                                    <Box
+                                        component="img"
+                                        src={post.attachments[1]?.file_url}
+                                        alt="post-1"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        sx={{ width: '50%', borderRadius: 1.25, objectFit: 'cover' }}
+                                    />
+                                </Box>
+                            )}
+                            {post.attachments.length >= 3 && (
+                                <Box sx={{ display: 'flex', gap: 1, height: 220 }}>
+                                    <Box
+                                        component="img"
+                                        src={post.attachments[0]?.file_url}
+                                        alt="post-0"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        sx={{ width: '50%', borderRadius: 1.25, objectFit: 'cover', height: '100%' }}
+                                    />
+                                    <Box sx={{ width: '50%', position: 'relative', borderRadius: 1.25, overflow: 'hidden', height: '100%' }}>
+                                        {/* show second image darkened */}
+                                        <Box
+                                            component="img"
+                                            src={post.attachments[1]?.file_url}
+                                            alt="post-1"
+                                            referrerPolicy="no-referrer"
+                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            sx={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(40%)' }}
+                                        />
+                                        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1.5rem' }}>
+                                                +{Math.max(0, (post.attachments.length - 2))}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            )}
+                        </Box>
+                    )}
                     {/* Stats: left likes, right comments */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
                         <Typography variant="body2" sx={{ color: '#6b7280' }}>
@@ -547,7 +725,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
                         <Button
                             variant="text"
                             startIcon={post.liked ? <ThumbUpAltIcon sx={{ color: '#2563eb' }} /> : <ThumbUpOffAltIcon sx={{ color: '#374151' }} />}
-                            onClick={() => onToggleLike(post.id)}
+                            onClick={(e) => { e.stopPropagation(); onToggleLike(post.id); }}
                             sx={{ textTransform: 'none', color: '#374151' }}
                         >
                             Thích
@@ -556,7 +734,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
                             variant="text"
                             startIcon={<ChatBubbleOutlineIcon />}
                             sx={{ textTransform: 'none', color: '#374151' }}
-                            onClick={() => onOpenComments(post)}
+                            onClick={(e) => { e.stopPropagation(); onOpenComments(post); }}
                         >
                             Bình luận
                         </Button>
@@ -574,6 +752,10 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
     const [commentLoading, setCommentLoading] = useState(false);
     const [deleteCommentId, setDeleteCommentId] = useState(null);
     const [deleteCommentOpen, setDeleteCommentOpen] = useState(false);
+    const [commentFiles, setCommentFiles] = useState([]);
+    const [commentPreviews, setCommentPreviews] = useState([]);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxSrc, setLightboxSrc] = useState('');
 
     // Reset internal state when post changes or dialog opens
     useEffect(() => {
@@ -583,6 +765,23 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
         }
     }, [open, post?.id]);
 
+    // previews for commentFiles
+    useEffect(() => {
+        if (!commentFiles || commentFiles.length === 0) {
+            setCommentPreviews(prev => {
+                prev.forEach(u => URL.revokeObjectURL(u));
+                return [];
+            });
+            return;
+        }
+        const urls = commentFiles.map(f => URL.createObjectURL(f));
+        setCommentPreviews(prev => {
+            prev.forEach(u => URL.revokeObjectURL(u));
+            return urls;
+        });
+        return () => { urls.forEach(u => URL.revokeObjectURL(u)); };
+    }, [commentFiles]);
+
     const visibleComments = useMemo(() => {
         const comments = post?.comments || [];
         const sorted = [...comments].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -591,17 +790,35 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
 
     const handleAddComment = useCallback(async () => {
         const c = newComment.trim();
-        if (!c || !post) return;
+        if (!post) return;
+        // allow image-only comments too
+        // Defensive: if commentFiles state is empty, try to read the native input (in case of fast submit)
+        let filesToSend = commentFiles;
+        if ((!filesToSend || filesToSend.length === 0) && typeof document !== 'undefined') {
+            const fileInput = document.getElementById('comment-file-input');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                filesToSend = Array.from(fileInput.files || []);
+                setCommentFiles(filesToSend);
+            }
+        }
+        if (!c && (!filesToSend || filesToSend.length === 0)) {
+            setAlertType('warning');
+            setAlertMessage('Bình luận phải có nội dung hoặc ít nhất một tệp đính kèm');
+            setShowAlert(true);
+            return;
+        }
         try {
             setCommentLoading(true);
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:4000/channels/posts/${post.id}/comments`, {
+            let res;
+            // Always send FormData for comments as well (simpler and avoids accidental JSON requests)
+            const form = new FormData();
+            form.append('content', c || '');
+            (filesToSend || []).forEach(f => form.append('files', f));
+            res = await fetch(`http://localhost:4000/channels/posts/${post.id}/comments`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ content: c, attachments: [] })
+                headers: { Authorization: `Bearer ${token}` },
+                body: form
             });
             if (!res.ok) return;
             const cmt = await res.json();
@@ -609,6 +826,9 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
             setNewComment('');
             setCommentsToShow(v => v + 1);
             onSuccess('Bình luận thành công');
+            // cleanup comment files and previews
+            setCommentFiles([]);
+            setCommentPreviews([]);
         } finally {
             setCommentLoading(false);
         }
@@ -666,12 +886,22 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                 {post.content && (
                     <Typography sx={{ mb: 1.25, color: '#111827' }}>{post.content}</Typography>
                 )}
-                <Box
-                    component="img"
-                    src="https://userpic.codeforces.org/747128/title/188117d8deb6f127.jpg"
-                    alt="post"
-                    sx={{ width: '100%', mb: 1.25, borderRadius: 1.5, objectFit: 'cover' }}
-                />
+                {/* Focused post images: when dialog is open show all attachments in a grid */}
+                {post.attachments && post.attachments.length > 0 && (
+                    <Box sx={{ mb: 1.25, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {post.attachments.map((a, i) => (
+                            <Box
+                                key={i}
+                                component="img"
+                                src={a?.file_url}
+                                alt={`post-${i}`}
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                sx={{ width: '100%', borderRadius: 1.5, objectFit: 'cover' }}
+                            />
+                        ))}
+                    </Box>
+                )}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2" sx={{ color: '#6b7280' }}>
                         {post._count?.likes || 0} lượt thích
@@ -699,6 +929,7 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                     </Button>
                 </Box>
                 <Divider sx={{ mb: 1.25 }} />
+                {/* comment file picker moved into Actions area for compact UI */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
                     {visibleComments.map((c) => (
                         <Box key={c.id}>
@@ -715,6 +946,20 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                                         </Typography>
                                     </Box>
                                     <Typography variant="body2" sx={{ color: '#111827' }}>{c.content}</Typography>
+                                    {c.attachments && c.attachments.length > 0 && (
+                                        <Box sx={{ mt: 1 }}>
+                                            {/* show first attachment for comment (we allow 1 image per comment) */}
+                                            <Box
+                                                component="img"
+                                                src={c.attachments[0]?.file_url}
+                                                alt={`comment-attach-${c.id}-0`}
+                                                referrerPolicy="no-referrer"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                onClick={() => { setLightboxSrc(c.attachments[0]?.file_url || ''); setLightboxOpen(true); }}
+                                                sx={{ width: 200, maxWidth: '100%', borderRadius: 1.25, objectFit: 'cover', mt: 0.5, cursor: 'pointer' }}
+                                            />
+                                        </Box>
+                                    )}
                                     {c.author?.id === currentUserId && (
                                         <IconButton
                                             size="small"
@@ -753,7 +998,7 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                 </Box>
             </DialogContent>
             <DialogActions sx={{ px: 2 }}>
-                <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
                     <TextField
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
@@ -761,11 +1006,48 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                         fullWidth
                         size="small"
                     />
-                    <Button onClick={handleAddComment} disabled={commentLoading || !newComment.trim()} variant="contained" sx={{ textTransform: 'none' }}>
-                        Gửi
-                    </Button>
+                    {/* bottom row: add-image icon and horizontal previews + send button */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <input
+                            id="comment-file-input"
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                                const files = e.target.files ? Array.from(e.target.files) : [];
+                                if (!files.length) return;
+                                // only allow a single image per comment
+                                setCommentFiles([files[0]]);
+                            }}
+                        />
+                        <IconButton aria-label="add-comment-image" onClick={() => document.getElementById('comment-file-input')?.click()} sx={{ bgcolor: '#f3f4f6' }} disabled={commentFiles && commentFiles.length >= 1}>
+                            <UploadFileIcon />
+                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', overflowX: 'auto', flex: 1 }}>
+                            {commentPreviews && commentPreviews.map((src, i) => (
+                                <Box key={`cprev-inline-${i}`} sx={{ position: 'relative', minWidth: 88, height: 64, borderRadius: 1, overflow: 'hidden', bgcolor: '#f3f4f6' }}>
+                                    <IconButton aria-label={`remove-comment-${i}`} size="small" onClick={() => { try { URL.revokeObjectURL(commentPreviews[i]); } catch(e){} setCommentFiles([]); }} sx={{ position: 'absolute', top: 4, right: 4, zIndex: 2, bgcolor: 'rgba(0,0,0,0.35)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.55)' } }}>
+                                        <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                    <Box component="img" src={src} alt={`cpreview-inline-${i}`} sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                </Box>
+                            ))}
+                        </Box>
+                        <Button onClick={handleAddComment} disabled={commentLoading || (!newComment.trim() && (!commentFiles || commentFiles.length === 0))} variant="contained" sx={{ textTransform: 'none' }}>
+                            Gửi
+                        </Button>
+                    </Box>
                 </Box>
             </DialogActions>
+            {/* Lightbox for viewing comment image centered */}
+            <Dialog open={lightboxOpen} onClose={() => setLightboxOpen(false)} maxWidth="lg" fullWidth>
+                <DialogContent sx={{ bgcolor: 'rgba(0,0,0,0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', p: 2 }}>
+                    <IconButton onClick={() => setLightboxOpen(false)} sx={{ position: 'absolute', top: 12, right: 12, color: '#fff', zIndex: 10 }}>
+                        <CloseIcon />
+                    </IconButton>
+                    <Box component="img" src={lightboxSrc} alt="preview" sx={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', display: 'block', m: '0 auto' }} />
+                </DialogContent>
+            </Dialog>
             {/* Delete comment confirm dialog */}
             <Dialog open={deleteCommentOpen} onClose={closeDeleteComment} maxWidth="xs" fullWidth>
                 <DialogTitle>Xác nhận xóa bình luận</DialogTitle>
@@ -778,4 +1060,6 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
         </Dialog>
     );
 });
+
+// Note: Lightbox dialog is inside CommentsDialog; when opened it centers the clicked image.
 export default ShowChannel;

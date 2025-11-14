@@ -182,18 +182,7 @@ const BeVolunteerForm = () => {
                 helperText={'Tự động điền từ tài khoản'}
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Ghi chú"
-                name="note"
-                value={form.note}
-                onChange={handleChange}
-                multiline
-                minRows={3}
-                placeholder="Thông tin thêm (tuỳ chọn)"
-              />
-            </Grid>
+            
             <Grid item xs={12}>
               <Divider className="bvf-divider" />
               <Box className="bvf-actions">

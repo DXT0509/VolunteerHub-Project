@@ -57,6 +57,7 @@ export async function getEventPosts(
             author: { select: { id: true, full_name: true, avatar_url: true } },
             _count: { select: { likes: true } },
             likes: { where: { user_id: userId }, select: { id: true } },
+            attachments: { select: { id: true, file_url: true, file_type: true, created_at: true } },
           },
         },
       },
@@ -219,7 +220,19 @@ export async function createComment(
     { post_id: postId }
   );
 
-  return cmt;
+  // Re-fetch the comment with attachments and related info so the API response
+  // contains attachments immediately after creation (client expects this).
+  const fullComment = await prisma.comments.findUnique({
+    where: { id: cmt.id },
+    include: {
+      author: { select: { id: true, full_name: true, avatar_url: true } },
+      attachments: { select: { id: true, file_url: true, file_type: true, created_at: true } },
+      _count: { select: { likes: true } },
+      likes: { where: { user_id: userId }, select: { id: true } },
+    },
+  });
+
+  return fullComment;
 }
 
 //Delete Comment

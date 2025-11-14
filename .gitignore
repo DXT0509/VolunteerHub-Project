@@ -17,3 +17,8 @@ yarn-error.log*
 # IDEs
 .vscode/
 .idea/
+
+# Runtime uploads (do not commit user-uploaded files)
+src/uploads/
+client-side/uploads/
+client-side/src/assets/uploads/
