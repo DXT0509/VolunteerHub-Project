@@ -33,3 +33,16 @@ export async function changePassword(req: AuthRequest, res: Response) {
     res.status(400).json({ error: err.message });
   }
 }
+
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const { userId, newPassword } = req.body;
+    const result = await UserService.resetPassword(
+      userId,
+      newPassword
+    );
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+}

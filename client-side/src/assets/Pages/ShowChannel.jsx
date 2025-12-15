@@ -50,9 +50,17 @@ function ShowChannel() {
     }, [id, navigate]);
 
     // If logged in but not approved (joined) for this event, kick back to event detail
+    // Privileged roles (EVENT_MANAGER, ADMIN) can access without joining
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) return; // handled by previous effect
+        let isPrivileged = false;
+        try {
+            const u = localStorage.getItem('user');
+            const parsed = u ? JSON.parse(u) : null;
+            const roleStr = String(parsed?.roles?.[0]?.role?.name || '');
+            isPrivileged = roleStr === 'EVENT_MANAGER' || roleStr === 'ADMIN';
+        } catch {}
         // Fetch user registrations and check status for this event id
         fetch('http://localhost:4000/registrations/my', {
             method: 'GET',
@@ -63,6 +71,7 @@ function ShowChannel() {
         })
         .then(res => res.ok ? res.json() : [])
         .then(list => {
+            if (isPrivileged) return; // allow access without redirect
             const reg = Array.isArray(list) ? list.find(r => String(r.event_id) === String(id)) : null;
             if (!reg || reg.status !== 'approved') {
                 // Optionally could show a warning alert before redirect; for now redirect immediately.
@@ -70,8 +79,10 @@ function ShowChannel() {
             }
         })
         .catch(() => {
-            // On error, be safe and redirect back
-            navigate(`/events/${id}`, { replace: true, state: { reason: 'check_failed' } });
+            // On error, be safe and redirect back unless privileged
+            if (!isPrivileged) {
+                navigate(`/events/${id}`, { replace: true, state: { reason: 'check_failed' } });
+            }
         });
     }, [id, navigate]);
     const fetchPostsPaged = useCallback((p) => {
@@ -325,6 +336,28 @@ function ShowChannel() {
         } catch { return null; }
     }, []);
 
+    // Determine if current user is EVENT_MANAGER of this event (channel id maps to event id)
+    const [isEventManager, setIsEventManager] = useState(false);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token || !currentUserId || !id) return;
+        // Try to retrieve event detail and check common manager/creator fields
+        fetch(`http://localhost:4000/events/${id}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.ok ? res.json() : null)
+        .then(evt => {
+            if (!evt) { setIsEventManager(false); return; }
+            const managerId = evt.manager_id ?? evt.organizer_id ?? evt.created_by ?? evt.creator_id ?? evt.owner_id ?? null;
+            setIsEventManager(String(managerId) === String(currentUserId));
+        })
+        .catch(() => setIsEventManager(false));
+    }, [id, currentUserId]);
+
     const requestDeletePost = useCallback((postId) => {
         setDeletePostId(postId);
         setDeleteOpen(true);
@@ -540,6 +573,7 @@ function ShowChannel() {
                 onOpenComments={openCommentsFor}
                 formatRelative={formatRelative}
                 currentUserId={currentUserId}
+                isEventManager={isEventManager}
                 onRequestDelete={requestDeletePost}
             />
 
@@ -567,6 +601,7 @@ function ShowChannel() {
                 onSuccess={onSuccess}
                 onNotify={(type, msg) => { setAlertType(type); setAlertMessage(msg); setShowAlert(true); }}
                 currentUserId={currentUserId}
+                isEventManager={isEventManager}
                 onApplyDeleteComment={(postId, commentId) => {
                     // update selectedPost
                     setSelectedPost(prev => {
@@ -613,7 +648,7 @@ function ShowChannel() {
 }
 
 // Memoized list of posts to avoid re-rendering while typing in other inputs
-const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenComments, formatRelative, currentUserId, onRequestDelete }) {
+const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenComments, formatRelative, currentUserId, isEventManager, onRequestDelete }) {
     return (
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', px: { xs: 1, sm: 0 } }}>
             {items?.map((post) => (
@@ -635,7 +670,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
                                 </Typography>
                             </Box>
                         </Box>
-                        {post.author?.id === currentUserId && (
+                        {(post.author?.id === currentUserId || isEventManager) && (
                             <Tooltip title="Xóa bài">
                                 <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRequestDelete(post.id); }}>
                                     <DeleteOutlineIcon sx={{ color: '#6b7280' }} />
@@ -749,7 +784,7 @@ const PostsList = React.memo(function PostsList({ items, onToggleLike, onOpenCom
 });
 
 // Memoized dialog for comments with internal state and memoized computations
-const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose, onTogglePostLike, onToggleCommentLike, onApplyNewComment, onSuccess, formatRelative, currentUserId, onNotify, onApplyDeleteComment }) {
+const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose, onTogglePostLike, onToggleCommentLike, onApplyNewComment, onSuccess, formatRelative, currentUserId, isEventManager, onNotify, onApplyDeleteComment }) {
     const [commentsToShow, setCommentsToShow] = useState(5);
     const [newComment, setNewComment] = useState('');
     const [commentLoading, setCommentLoading] = useState(false);
@@ -963,7 +998,7 @@ const CommentsDialog = React.memo(function CommentsDialog({ open, post, onClose,
                                             />
                                         </Box>
                                     )}
-                                    {c.author?.id === currentUserId && (
+                                    {(c.author?.id === currentUserId || isEventManager) && (
                                         <IconButton
                                             size="small"
                                             onClick={() => requestDeleteComment(c.id)}

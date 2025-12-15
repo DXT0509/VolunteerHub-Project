@@ -15,6 +15,21 @@ export async function createEvent(managerId: number, data: any) {
     banner_url,
   } = data;
 
+  // Required field validation (except banner)
+  if (!title || !description || !category_id || !location || !location.name || !location.address_line || !location.district || !location.province || !location.country || !start_time || !end_time || (!capacity && capacity !== 0)) {
+    throw new Error("Vui lòng điền đầy đủ tất cả trường thông tin");
+  }
+
+  // Validate time range: end_time must be >= start_time
+  const start = new Date(start_time);
+  const end = new Date(end_time);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new Error("Thời gian bắt đầu/kết thúc không hợp lệ");
+  }
+  if (end.getTime() < start.getTime()) {
+    throw new Error("Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu");
+  }
+
   let baseslug = slugify(title, { lower: true, strict: true });
   let slug = baseslug;
   let counter = 1;
@@ -41,8 +56,8 @@ export async function createEvent(managerId: number, data: any) {
       description,
       category_id,
       location_id: newLocation.id,
-      start_time: new Date(start_time),
-      end_time: new Date(end_time),
+      start_time: start,
+      end_time: end,
       capacity,
       banner_url,
       manager_id: managerId,
@@ -106,11 +121,34 @@ export async function updateEvent(id: number, managerId: number, data: any) {
   if (event.manager_id !== managerId)
     throw new Error("Bạn không có quyền chỉnh sửa sự kiện này");
 
+  // Required field validation on update (except banner). Use existing values if not provided to check completeness.
+  const reqTitle = data.title ?? event.title;
+  const reqDesc = data.description ?? event.description;
+  const reqCategoryId = data.category_id ?? event.category_id;
+  const reqStart = data.start_time ?? event.start_time;
+  const reqEnd = data.end_time ?? event.end_time;
+  const reqCapacity = data.capacity ?? event.capacity;
+  // Location can be either existing or new object
+  const reqLocation = data.location ? data.location : event.location;
+  if (!reqTitle || !reqDesc || !reqCategoryId || !reqStart || !reqEnd || (!reqCapacity && reqCapacity !== 0) || !reqLocation || !reqLocation.name || !reqLocation.address_line || !reqLocation.district || !reqLocation.province || !reqLocation.country) {
+    throw new Error("Vui lòng điền đầy đủ tất cả trường thông tin");
+  }
+
+  // Determine new start/end to validate ordering
+  const candidateStart = data.start_time ? new Date(data.start_time) : new Date(event.start_time);
+  const candidateEnd = data.end_time ? new Date(data.end_time) : new Date(event.end_time);
+  if (Number.isNaN(candidateStart.getTime()) || Number.isNaN(candidateEnd.getTime())) {
+    throw new Error("Thời gian bắt đầu/kết thúc không hợp lệ");
+  }
+  if (candidateEnd.getTime() < candidateStart.getTime()) {
+    throw new Error("Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu");
+  }
+
   let updateData: any = {
     description: data.description,
     category_id: data.category_id,
-    start_time: data.start_time ? new Date(data.start_time) : undefined,
-    end_time: data.end_time ? new Date(data.end_time) : undefined,
+    start_time: data.start_time ? candidateStart : undefined,
+    end_time: data.end_time ? candidateEnd : undefined,
     capacity: data.capacity,
     banner_url: data.banner_url,
     updated_at: new Date(),

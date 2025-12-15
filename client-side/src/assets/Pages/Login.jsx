@@ -15,6 +15,9 @@ const Login = () => {
     const [error, setError] = useState("");
     const [showAlert, setShowAlert] = useState(false);
     const [animateForm, setAnimateForm] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+    const [emailValue, setEmailValue] = useState("");
+    const [passwordValue, setPasswordValue] = useState("");
 
     // Trigger slide-in animation after mount
     useEffect(() => {
@@ -26,18 +29,27 @@ const Login = () => {
         if (check) {
           navigate('/', { replace: true });
         }
+        // Load remembered credentials if present
+        const rem = localStorage.getItem('rememberMe') === 'true';
+        const remEmail = localStorage.getItem('rememberEmail') || '';
+        const remPass = localStorage.getItem('rememberPassword') || '';
+        if (rem) {
+          setRememberMe(true);
+          setEmailValue(remEmail);
+          setPasswordValue(remPass);
+        }
       }, [navigate]);
     const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const email = e.target.email.value.trim();
-    const password = e.target.password.value.trim();
+    const email = emailValue.trim();
+    const password = passwordValue.trim();
     try {
       const res = await fetch("http://localhost:4000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, remember: rememberMe }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -47,6 +59,16 @@ const Login = () => {
       // Lưu token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      // Nếu chọn ghi nhớ đăng nhập, lưu email & mật khẩu để tự điền lại lần sau
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberEmail', email);
+        localStorage.setItem('rememberPassword', password);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberEmail');
+        localStorage.removeItem('rememberPassword');
+      }
       // Điều hướng về trang chủ
       setShowAlert(false);
       window.location.href = "/";
@@ -105,6 +127,8 @@ const Login = () => {
                       type="email"
                       required
                       variant="outlined"
+                      value={emailValue}
+                      onChange={(e) => setEmailValue(e.target.value)}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -122,6 +146,8 @@ const Login = () => {
                       type="password"
                       required
                       variant="outlined"
+                      value={passwordValue}
+                      onChange={(e) => setPasswordValue(e.target.value)}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -134,10 +160,10 @@ const Login = () => {
                   <Grid item xs={12} >
                     <div className="remember-forgot">
                       <FormControlLabel
-                        control={<Checkbox color="success" size="small" />}
+                        control={<Checkbox color="success" size="small" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />}
                         label="Ghi nhớ đăng nhập"
                       />
-                      <a href="#">Quên mật khẩu?</a>
+                      <a href="/forget-password">Quên mật khẩu?</a>
                     </div>
                   </Grid>
                   <Grid item xs={12}>

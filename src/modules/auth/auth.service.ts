@@ -70,3 +70,10 @@ export async function getUserProfile(userId: number) {
     include: { roles: { include: { role: true } } },
   });
 }
+
+export async function getUserByEmailAndPhone(email: string, phone: string) {
+  return prisma.users.findFirst({
+    where: { email, phone },
+  
+  });
+}

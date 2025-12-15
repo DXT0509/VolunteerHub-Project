@@ -36,3 +36,13 @@ export async function me(req: AuthRequest, res: Response) {
     res.status(400).json({ error: err.message });
   }
 }
+
+export async function getUserByEmailAndPhone(req: Request, res: Response) {
+  try {
+    const { email, phone } = req.body;
+    const user = await AuthService.getUserByEmailAndPhone(email, phone);
+    res.json(user);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+}

@@ -38,7 +38,7 @@ router.get("/:eventId/posts", authenticate, getEventPosts);
 router.post(
   "/:eventId/posts",
   authenticate,
-  authorize(["VOLUNTEER", "EVENT_MANAGER"]),
+  authorize(["VOLUNTEER", "EVENT_MANAGER", "ADMIN"]),
   upload.array("files", 10),
   createPost
 );

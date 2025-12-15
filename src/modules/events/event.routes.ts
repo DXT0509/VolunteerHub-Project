@@ -47,7 +47,13 @@ router.post(
   upload.single("banner"),
   create
 );
-router.put("/:id", authenticate, authorize(["EVENT_MANAGER"]), update);
+router.put(
+  "/:id",
+  authenticate,
+  authorize(["EVENT_MANAGER"]),
+  upload.single("banner"),
+  update
+);
 router.delete("/:id", authenticate, authorize(["EVENT_MANAGER"]), remove);
 router.patch(
   "/:id/finalize",

@@ -10,6 +10,8 @@ import {
   checkIn,
   checkOut,
   getEventRegistrations,
+  getPendingRegistrations,
+  getApprovedRegistrations,
 } from "./registration.controller";
 
 const router = Router();
@@ -18,7 +20,8 @@ const router = Router();
 router.post("/:eventId/register", authenticate, registerEvent);
 router.patch("/:eventId/register", authenticate, cancelRegistration);
 router.get("/my", authenticate, getUserRegistrations);
-
+router.get("/pending", authenticate, getPendingRegistrations);
+router.get("/approved", authenticate, getApprovedRegistrations);
 //Manager approve
 router.patch(
   "/:regId/status",

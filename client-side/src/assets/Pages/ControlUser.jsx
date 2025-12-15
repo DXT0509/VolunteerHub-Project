@@ -316,14 +316,14 @@ function ControlUser() {
                 const avatar = u.avatar_url;
                 const isActive = !!u.is_active;
                 const roleName = (u.roles || []).map(r => r?.role?.name)[0] || 'VOLUNTEER';
-                const roleLabel = roleName === 'EVENT_MANAGER' ? 'Quản lý sự kiện' : 'Tình nguyện viên';
                 return (
                   <ListItem
                     key={u.id}
                     className={`cu-item ${u.is_active ? 'cu-active' : 'cu-locked'}`}
                     secondaryAction={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 } }}>
-                        <Typography sx={{ fontSize: '.82rem', color: '#16a34a', fontWeight: 700 }}>{roleLabel}</Typography>
+                        
+                        
                         <Button
                           size="small"
                           variant="outlined"
@@ -333,6 +333,49 @@ function ControlUser() {
                         >
                           Xem
                         </Button>
+                        <FormControl size="small" sx={{ minWidth: { xs: 150, sm: 180 } }}>
+                          <InputLabel id={`role-select-label-${u.id}`}>Vai trò</InputLabel>
+                          <Select
+                            labelId={`role-select-label-${u.id}`}
+                            id={`role-select-${u.id}`}
+                            label="Vai trò"
+                            value={roleName}
+                            onChange={async (e) => {
+                              const newRole = e.target.value;
+
+                              const token = localStorage.getItem('token');
+                              // Optimistic update
+                              setUsers(prev => prev.map(x => x.id === u.id ? { ...x, roles: [{ role: { name: newRole } }] } : x));
+                              try {
+                                
+                                const res = await fetch(`http://localhost:4000/admin/${u.id}/role`, {
+                                  method: 'PATCH',
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ new_role: newRole })
+                                });
+                                if (!res.ok) {
+                                  const j = await res.json().catch(() => ({}));
+                                  throw new Error(j?.error || 'Cập nhật vai trò thất bại');
+                                }
+                                const updated = await res.json();
+                                // Ensure local state reflects server response
+                                const updatedRole = (updated.roles || []).map(r => r?.role?.name)[0] || newRole;
+                                setUsers(prev => prev.map(x => x.id === u.id ? { ...x, roles: [{ role: { name: updatedRole } }] } : x));
+                                openSnack('Đã cập nhật vai trò người dùng','success');
+                              } catch (err) {
+                                // Revert on error
+                                setUsers(prev => prev.map(x => x.id === u.id ? { ...x, roles: [{ role: { name: roleName } }] } : x));
+                                openSnack(err.message || 'Có lỗi khi cập nhật vai trò','error');
+                              }
+                            }}
+                          >
+                            <MenuItem value="VOLUNTEER">Tình nguyện viên</MenuItem>
+                            <MenuItem value="EVENT_MANAGER">Quản lý sự kiện</MenuItem>
+                          </Select>
+                        </FormControl>
                         <Button
                           size="small"
                           variant="contained"
@@ -431,7 +474,7 @@ function ControlUser() {
               <Typography><strong>Tên đăng nhập:</strong> {selected.username}</Typography>
               <Typography><strong>Email:</strong> {selected.email}</Typography>
               <Typography><strong>Số điện thoại:</strong> {selected.phone || '—'}</Typography>
-              <Typography><strong>Trạng thái:</strong> {selected.is_active ? 'Đang hoạt động' : 'Đã khóa'}</Typography>
+              <Typography><strong>Trạng thái:</strong> {selected.is_active ? 'Hiệu lực' : 'Đã khóa'}</Typography>
               <Typography><strong>Quyền:</strong> {(selected.roles || []).map(r => r?.role?.name).join(', ') || '—'}</Typography>
               <Typography><strong>Tạo lúc:</strong> {new Date(selected.created_at).toLocaleString('vi-VN')}</Typography>
             </Box>

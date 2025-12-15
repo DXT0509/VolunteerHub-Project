@@ -69,8 +69,18 @@ function ShowCampaignDetail() {
         if (!res.ok) throw new Error('Không tải được chi tiết sự kiện');
         return res.json();
       })
-      .then(data => setEvent(data))
-      .catch(err => console.error(err));
+      .then(data => {
+        // Redirect to home if event does not exist or not approved/active
+        if (!data || String(data.status || '').toLowerCase() !== 'active') {
+          navigate('/', { replace: true });
+          return;
+        }
+        setEvent(data);
+      })
+      .catch(err => {
+        console.error(err);
+        navigate('/', { replace: true });
+      });
   }, [id, allowed]);
 
   // Load user's registrations when allowed
@@ -387,8 +397,16 @@ function ShowCampaignDetail() {
             style={{ marginLeft: '85px' }}
             variant="contained"
             onClick={() => {
+              // Allow privileged roles to access even if not registered
+              let isPrivileged = false;
+              try {
+                const u = localStorage.getItem('user');
+                const parsed = u ? JSON.parse(u) : null;
+                const roleStr = String(parsed?.roles?.[0]?.role?.name || '');
+                isPrivileged = roleStr === 'EVENT_MANAGER' || roleStr === 'ADMIN';
+              } catch {}
               const status = getRegistrationStatus(event.id);
-              if (status !== 'approved') {
+              if (status !== 'approved' && !isPrivileged) {
                 setWarnMsg('Bạn chưa tham gia sự kiện');
                 setWarnSeverity('warning');
                 setShowWarn(true);

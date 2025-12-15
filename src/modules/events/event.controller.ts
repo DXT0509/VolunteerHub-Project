@@ -55,10 +55,29 @@ export async function detailBySlug(req: Request, res: Response) {
 
 export async function update(req: AuthRequest, res: Response) {
   try {
+    // Support both JSON and multipart/form-data on update
+    const body: any = req.body || {};
+    if (typeof body.location === "string") {
+      try { body.location = JSON.parse(body.location); } catch { /* ignore */ }
+    }
+    if (typeof body.category_id === "string" && body.category_id !== "") body.category_id = Number(body.category_id);
+    if (typeof body.location_id === "string" && body.location_id !== "") body.location_id = Number(body.location_id);
+    if (typeof body.capacity === "string" && body.capacity !== "") body.capacity = Number(body.capacity);
+    if (typeof body.start_time === "string" && body.start_time) {
+      try { body.start_time = new Date(body.start_time).toISOString(); } catch { /* keep original */ }
+    }
+    if (typeof body.end_time === "string" && body.end_time) {
+      try { body.end_time = new Date(body.end_time).toISOString(); } catch { /* keep original */ }
+    }
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      body.banner_url = `${baseUrl}/uploads/${file.filename}`;
+    }
     const result = await EventService.updateEvent(
       Number(req.params.id),
       req.user!.userId,
-      req.body
+      body
     );
     res.json(result);
   } catch (err: any) {

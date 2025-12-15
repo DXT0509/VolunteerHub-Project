@@ -14,6 +14,11 @@ import RegistrationSuccess from './assets/Pages/RegistrationSuccess.jsx'
 import ShowCampaignJoin from './assets/Pages/ShowCampaignJoin.jsx'
 import ControlUser from './assets/Pages/ControlUser.jsx'
 import ManageMyCampaign from './assets/Pages/ManageMyCampaign.jsx'
+import ManagePendingCampaign from './assets/Pages/ManagePendingCampaign.jsx'
+import ManagePendingRegistration from './assets/Pages/ManagePendingRegistration.jsx'
+import ForgetPassword from './assets/Pages/ForgetPassword.jsx'
+import ShowVolunteer from './assets/Pages/ShowVolunteer.jsx'
+import CheckOutVolunteer from './assets/Pages/CheckOutVolunteer.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
@@ -30,6 +35,11 @@ createRoot(document.getElementById('root')).render(
           <Route path='/mycampaigns' element={<ShowCampaignJoin />} />
           <Route path='/control-users' element={<ControlUser />} />
           <Route path='/manage-my-campaigns' element={<ManageMyCampaign />} />
+          <Route path='/manage-pending-campaigns' element={<ManagePendingCampaign />} />
+          <Route path='/manage-pending-registrations' element={<ManagePendingRegistration />} />
+          <Route path='/forget-password' element={<ForgetPassword />} />
+          <Route path='/show-volunteers' element={<ShowVolunteer />} />
+          <Route path='/check-out-volunteer' element={<CheckOutVolunteer />} />
         </Route>
       </Routes>
     </BrowserRouter>

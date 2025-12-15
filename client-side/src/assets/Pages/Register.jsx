@@ -3,7 +3,7 @@ import "./Login.css";
 import { IonIcon } from "@ionic/react";
 import { mail, lockClosed, person, call } from "ionicons/icons";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Checkbox, FormControlLabel, TextField, InputAdornment, Box, Grid, Alert, Slide, Fade, Snackbar } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, TextField, InputAdornment, Box, Grid, Alert, Slide, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 function SlideFromTop(props) {
   // Always slide in from the top ('down'); on exit, MUI slides in the opposite direction -> up
   return <Slide {...props} direction="down" timeout={600} />;
@@ -19,12 +19,14 @@ const Register = () => {
     password: "",
     agree: false,
   });
+  const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   // Chỉ hiển thị placeholder số điện thoại khi focus
   const [phonePlaceholder, setPhonePlaceholder] = useState("");
   const [animateForm, setAnimateForm] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,6 +62,13 @@ const Register = () => {
       setLoading(false);
       return;
     }
+    // simple validation: password length at least 6
+    if (!form.password || String(form.password).length < 6) {
+      setPasswordError('Mật khẩu phải có ít nhất 6 kí tự');
+      setLoading(false);
+      return;
+    }
+    setPasswordError('');
     try {
         const res = await fetch("http://localhost:4000/auth/register", {
             method: "POST",
@@ -200,6 +209,8 @@ const Register = () => {
                       </InputAdornment>
                     ),
                   }}
+                   error={Boolean(passwordError)}
+                   helperText={passwordError || ''}
                 />
               </Grid>
 
@@ -215,7 +226,11 @@ const Register = () => {
                         onChange={handleChange}
                       />
                     }
-                    label="Tôi đồng ý với điều khoản & điều kiện"
+                    label={
+                      <span>
+                        Tôi đồng ý với <span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTermsOpen(true)}>điều khoản & điều kiện</span>
+                      </span>
+                    }
                   />
                 </div>
               </Grid>
@@ -237,6 +252,22 @@ const Register = () => {
           
         </div>
       </div>
+      <Dialog open={termsOpen} onClose={() => setTermsOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Các điều khoản & điều kiện</DialogTitle>
+        <DialogContent dividers>
+          <Typography component="div" sx={{ whiteSpace: 'pre-line' }}>
+  {`Các điều khoản và điều kiện người dùng phải chấp nhận:
+  1. Phải đồng ý rằng giao diện VolunteerHub rất đẹp
+  2. Phải đồng ý rằng web VolunteerHub rất dễ dùng
+  
+  3. Phải đồng ý rằng web này xứng đáng được 10 điểm bài tập lớn
+  4. J4F`}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTermsOpen(false)} variant="contained">Đóng</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

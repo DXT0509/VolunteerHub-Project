@@ -1,15 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import { Box, Paper, Typography, Chip, Button, CircularProgress, List, ListItem, ListItemText, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert, Fade, IconButton, Tooltip } from '@mui/material';
+import { Box, Paper, Typography, Chip, Button, CircularProgress, List, ListItem, ListItemText, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert, Fade, IconButton, Tooltip, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import CloseIcon from '@mui/icons-material/Close';
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ShowCampaignJoin.css';
+
+// Helper: format a UTC datetime string into 'YYYY-MM-DDTHH:MM' at GMT+7 for input[type="datetime-local"]
+function formatInputGmtPlus7(utcLike) {
+	if (!utcLike) return '';
+	const d = new Date(utcLike);
+	if (Number.isNaN(d.getTime())) return '';
+	// shift to GMT+7 by adding 7 hours to the UTC time
+	const shifted = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+	const pad = (n) => String(n).padStart(2, '0');
+	const yyyy = shifted.getUTCFullYear();
+	const mm = pad(shifted.getUTCMonth() + 1);
+	const dd = pad(shifted.getUTCDate());
+	const hh = pad(shifted.getUTCHours());
+	const mi = pad(shifted.getUTCMinutes());
+	return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
 
 function approvalLabel(status) {
 	const s = (status || '').toLowerCase();
@@ -53,12 +70,36 @@ const ManageMyCampaign = () => {
 	const [saving, setSaving] = useState(false);
 	const [snackbarOpen, setSnackbarOpen] = useState(false);
 	const [snackbarMsg, setSnackbarMsg] = useState('');
+	const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' or 'warning'
+	// Local errors to keep forms open and avoid replacing list UI
+	const [createError, setCreateError] = useState('');
+	const [editError, setEditError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
 
+	// Role guard: only allow EVENT_MANAGER to access this page
+	useEffect(() => {
+		try {
+			const token = localStorage.getItem('token');
+			const userStr = localStorage.getItem('user');
+			if (!token || !userStr) {
+				navigate('/login', { replace: true });
+				return;
+			}
+			const user = JSON.parse(userStr);
+			const roles =  String(user.roles[0].role.name);
+			const isEventManager = roles.includes('EVENT_MANAGER');
+			if (!isEventManager) {
+				navigate('/', { replace: true });
+			}
+		} catch {
+			navigate('/', { replace: true });
+		}
+	}, [navigate]);
+
 	// Pagination: show max 3 events per page
 	const [page, setPage] = useState(0);
-	const pageSize = 3;
+	const pageSize = 5;
 
 	// Delete controls
 	const [deleteOpen, setDeleteOpen] = useState(false);
@@ -85,6 +126,11 @@ const ManageMyCampaign = () => {
 	});
 	const [bannerFile, setBannerFile] = useState(null);
 	const [bannerPreview, setBannerPreview] = useState('');
+	const [categories, setCategories] = useState([]);
+	// Edit dialog banner + location fields (to mirror create)
+	const [editBannerFile, setEditBannerFile] = useState(null);
+	const [editBannerPreview, setEditBannerPreview] = useState('');
+	const [editLocation, setEditLocation] = useState({ name: '', address_line: '', district: '', province: '', country: 'Việt Nam' });
 
 	useEffect(() => {
 		if (!bannerFile) {
@@ -102,7 +148,24 @@ const ManageMyCampaign = () => {
 		return () => { try { URL.revokeObjectURL(url); } catch {} };
 	}, [bannerFile]);
 
-	const openCreateDialog = () => setCreateOpen(true);
+	// Preview for edit banner
+	useEffect(() => {
+		if (!editBannerFile) {
+			if (editBannerPreview) {
+				try { URL.revokeObjectURL(editBannerPreview); } catch {}
+			}
+			setEditBannerPreview('');
+			return;
+		}
+		const url = URL.createObjectURL(editBannerFile);
+		setEditBannerPreview((prev) => {
+			if (prev) { try { URL.revokeObjectURL(prev); } catch {} }
+			return url;
+		});
+		return () => { try { URL.revokeObjectURL(url); } catch {} };
+	}, [editBannerFile]);
+
+	const openCreateDialog = () => { setCreateOpen(true); setCreateError(''); };
 	const closeCreateDialog = () => { setCreateOpen(false); setCreating(false); setBannerFile(null); };
 
 	const onCreateChange = (field, value) => {
@@ -117,6 +180,30 @@ const ManageMyCampaign = () => {
 	const submitCreate = async () => {
 		try {
 			setCreating(true);
+			setCreateError('');
+			// Front-end required validation (all fields except banner)
+			const requiredCreateFields = [
+				createForm.title?.trim(),
+				createForm.description?.trim(),
+				createForm.category_id,
+				createForm.start_time,
+				createForm.end_time,
+				createForm.capacity,
+				createForm.location.name?.trim(),
+				createForm.location.address_line?.trim(),
+				createForm.location.district?.trim(),
+				createForm.location.province?.trim(),
+				createForm.location.country?.trim(),
+			];
+			if (requiredCreateFields.some((v) => v === '' || v === undefined || v === null)) {
+				const msg = 'Vui lòng điền đầy đủ tất cả trường thông tin.';
+				setCreateError(msg);
+				setSnackbarMsg(msg);
+				setSnackbarSeverity('warning');
+				setSnackbarOpen(true);
+				setCreating(false);
+				return;
+			}
 			const token = localStorage.getItem('token');
 			const delay = new Promise((res) => setTimeout(res, 2000));
 			// Build multipart/form-data with flat fields so controllers using req.body work even without req.body.data
@@ -138,15 +225,27 @@ const ManageMyCampaign = () => {
 			});
 			const [resp] = await Promise.all([respPromise, delay]);
 			if (!resp.ok) {
-				const t = await resp.text();
-				throw new Error(t || 'Tạo sự kiện thất bại');
+				let msg = 'Tạo sự kiện thất bại';
+				try {
+					const j = await resp.json();
+					msg = j?.error || msg;
+				} catch {
+					try { msg = await resp.text() || msg; } catch {}
+				}
+				setCreateError(msg);
+				setSnackbarMsg(msg);
+				setSnackbarSeverity('warning');
+				setSnackbarOpen(true);
+				throw new Error(msg);
 			}
 			setSnackbarMsg('Tạo sự kiện thành công');
+			setSnackbarSeverity('success');
 			setSnackbarOpen(true);
 			closeCreateDialog();
 			await fetchMyEvents();
 		} catch (e) {
 			setSnackbarMsg(e.message || 'Có lỗi khi tạo sự kiện');
+			setSnackbarSeverity('warning');
 			setSnackbarOpen(true);
 			setCreating(false);
 		}
@@ -196,6 +295,23 @@ const ManageMyCampaign = () => {
 		return () => clearTimeout(t);
 	}, [navigate, location.key]);
 
+	// Load categories for selection in create dialog
+	useEffect(() => {
+		const token = localStorage.getItem('token');
+		if (!token) return;
+		fetch('http://localhost:4000/categories', {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			}
+		})
+			.then(res => res.ok ? res.json() : [])
+			.then(data => {
+				if (Array.isArray(data)) setCategories(data);
+			})
+			.catch(() => {});
+	}, []);
+
 	const fetchMyEvents = async () => {
 		try {
 			const token = localStorage.getItem('token');
@@ -228,11 +344,22 @@ const ManageMyCampaign = () => {
 			description: ev.description || '',
 			category_id: ev.category_id ?? ev.category?.id ?? '',
 			location_id: ev.location_id ?? ev.location?.id ?? '',
-			start_time: ev.start_time ? new Date(ev.start_time).toISOString().slice(0,16) : '',
-			end_time: ev.end_time ? new Date(ev.end_time).toISOString().slice(0,16) : '',
+			// Database stores UTC; display as GMT+7 in the input
+			start_time: ev.start_time ? formatInputGmtPlus7(ev.start_time) : '',
+			end_time: ev.end_time ? formatInputGmtPlus7(ev.end_time) : '',
 			capacity: ev.capacity ?? '',
 			banner_url: ev.banner_url ?? '',
 		});
+		// initialize edit location fields from event.location if available
+		setEditLocation({
+			name: ev.location?.name || '',
+			address_line: ev.location?.address_line || '',
+			district: ev.location?.district || '',
+			province: ev.location?.province || '',
+			country: ev.location?.country || 'Việt Nam',
+		});
+		setEditBannerFile(null);
+		setEditBannerPreview('');
 		setEditOpen(true);
 	};
 
@@ -242,6 +369,9 @@ const ManageMyCampaign = () => {
 		setForm({
 			title: '', description: '', category_id: '', location_id: '', start_time: '', end_time: '', capacity: '', banner_url: ''
 		});
+		setEditLocation({ name: '', address_line: '', district: '', province: '', country: 'Việt Nam' });
+		setEditBannerFile(null);
+		setEditBannerPreview('');
 	};
 
 	const onFormChange = (field, value) => {
@@ -304,33 +434,106 @@ const ManageMyCampaign = () => {
 			return;
 		}
 		if (!form.title || !form.category_id || !form.location_id || !form.start_time || !form.end_time) {
-			setError('Vui lòng điền đầy đủ các trường bắt buộc.');
+			const msg = 'Vui lòng điền đầy đủ các trường bắt buộc.';
+			setEditError(msg);
+			setSnackbarMsg(msg);
+			setSnackbarSeverity('warning');
+			setSnackbarOpen(true);
 			return;
 		}
+		// Additional front-end required validation for edit (all fields except banner)
+		const requiredEditFields = [
+			form.title?.trim(),
+			form.description?.trim(),
+			form.category_id,
+			form.location_id,
+			form.start_time,
+			form.end_time,
+			form.capacity,
+		];
+		if (requiredEditFields.some((v) => v === '' || v === undefined || v === null)) {
+			const msg = 'Vui lòng điền đầy đủ tất cả trường thông tin.';
+			setEditError(msg);
+			setSnackbarMsg(msg);
+			setSnackbarSeverity('warning');
+			setSnackbarOpen(true);
+			setSaving(false);
+			return;
+		}
+		// Validate capacity against current participants (submit-time only)
+		try {
+			const ev = campaigns.find((e) => e.id === id);
+			const totalJoined = Number(
+				ev?.total_joined ??
+				ev?.totalJoined ??
+				ev?.participants_count ??
+				ev?.registrations_count ??
+				0
+			);
+			const currentTotal = Number(form.capacity || 0) + totalJoined;
+			if (currentTotal < totalJoined) {
+				const msg = 'Số lượng mới không được nhỏ hơn tổng số người đang tham gia';
+				setEditError(msg);
+				setSnackbarMsg(msg);
+				setSnackbarSeverity('warning');
+				setSnackbarOpen(true);
+				return;
+			}
+		} catch {}
+
 		setSaving(true);
 		try {
-			const payload = {
-				title: form.title,
-				description: form.description,
-				category_id: Number(form.category_id),
-				location_id: Number(form.location_id),
-				start_time: new Date(form.start_time).toISOString(),
-				end_time: new Date(form.end_time).toISOString(),
-				capacity: form.capacity ? Number(form.capacity) : undefined,
-				banner_url: form.banner_url,
-			};
+			// If user selected a new banner file, send multipart/form-data so backend can replace image
 			const requestPromise = (async () => {
-				const res = await fetch(`http://localhost:4000/events/${id}`, {
-					method: 'PUT',
-					headers: {
-						Authorization: `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(payload)
-				});
+				let res;
+				if (editBannerFile) {
+					const formData = new FormData();
+					formData.append('title', form.title || '');
+					formData.append('description', form.description || '');
+					formData.append('category_id', String(Number(form.category_id)));
+					formData.append('location_id', String(Number(form.location_id)));
+					formData.append('start_time', new Date(form.start_time).toISOString());
+					formData.append('end_time', new Date(form.end_time).toISOString());
+					if (form.capacity) formData.append('capacity', String(Number(form.capacity)));
+					formData.append('banner', editBannerFile);
+					res = await fetch(`http://localhost:4000/events/${id}`, {
+						method: 'PUT',
+						headers: { Authorization: `Bearer ${token}` },
+						body: formData,
+					});
+				} else {
+					const payload = {
+						title: form.title,
+						description: form.description,
+						category_id: Number(form.category_id),
+						location_id: Number(form.location_id),
+						start_time: new Date(form.start_time).toISOString(),
+						end_time: new Date(form.end_time).toISOString(),
+						capacity: form.capacity ? Number(form.capacity) : undefined,
+						banner_url: form.banner_url,
+					};
+					res = await fetch(`http://localhost:4000/events/${id}`, {
+						method: 'PUT',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(payload)
+					});
+				}
 				if (!res.ok) {
-					const msg = await res.text();
-					throw new Error(msg || 'Cập nhật thất bại');
+					let msg = 'Cập nhật thất bại';
+					try {
+						const j = await res.json();
+						msg = j?.error || msg;
+					} catch {
+						try { msg = await res.text() || msg; } catch {}
+					}
+					setEditError(msg);
+					setSnackbarMsg(msg);
+					setSnackbarSeverity('warning');
+					setSnackbarOpen(true);
+					throw new Error(msg);
 				}
 				return res.json();
 			})();
@@ -340,11 +543,17 @@ const ManageMyCampaign = () => {
 			setError(null);
 			setEditingId(null);
 			setEditOpen(false);
+			setEditBannerFile(null);
+			setEditBannerPreview('');
 			setSnackbarMsg('Cập nhật chiến dịch thành công');
+			setSnackbarSeverity('success');
 			setSnackbarOpen(true);
 			await fetchMyEvents();
 		} catch (err) {
-			setError(err.message);
+			const msg = err?.message || 'Có lỗi khi cập nhật chiến dịch';
+			setSnackbarMsg(msg);
+			setSnackbarSeverity('warning');
+			setSnackbarOpen(true);
 		} finally {
 			setSaving(false);
 		}
@@ -361,7 +570,7 @@ const ManageMyCampaign = () => {
 				transitionDuration={{ enter: 250, exit: 200 }}
 				sx={{ top: 4 }}
 			>
-				<Alert severity="success" variant="filled" sx={{ px: 2, py: 1, borderRadius: 1.5, boxShadow: 2 }}>
+				<Alert severity={snackbarSeverity} variant="filled" sx={{ px: 2, py: 1, borderRadius: 1.5, boxShadow: 2 }}>
 					{snackbarMsg}
 				</Alert>
 			</Snackbar>
@@ -382,14 +591,16 @@ const ManageMyCampaign = () => {
 				>
 					Chiến dịch của tôi
 				</Typography>
-				<Box sx={{ position: 'relative' }}>
-					<Box sx={{ position: 'absolute', top: 12, right: 12 }}>
-						<Button variant="contained" color="primary" onClick={openCreateDialog} sx={{ textTransform: 'none', fontWeight: 600 }}>
-							Tạo chiến dịch mới
-						</Button>
-					</Box>
+				{/* Header row: left button + right total */}
+				<Box sx={{ px: { xs: 1.5, sm: 2 }, mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+					<Button variant="contained" color="primary" onClick={openCreateDialog} startIcon={<PostAddIcon />} sx={{ textTransform: 'none', fontWeight: 600 }}>
+						Tạo chiến dịch mới
+					</Button>
+					<Typography sx={{ fontWeight: 600 }}>
+						Tổng: {campaigns.length} chiến dịch
+					</Typography>
 				</Box>
-				<Box sx={{ p: { xs: 1.5, sm: 2 },mt: 4 }}>
+				<Box sx={{ p: { xs: 1.5, sm: 2 },mt: 0 }}>
 					
 				{loading ? (
 					<Box sx={{ py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -407,6 +618,13 @@ const ManageMyCampaign = () => {
 							const st = approvalLabel(rawStatus);
 							const title = ev.title || ev.name || `Chiến dịch #${ev.id}`;
 							const locationName = ev.location?.name || '';
+                            const totalJoined = Number(
+                                ev?.total_joined ??
+                                ev?.totalJoined ??
+                                ev?.participants_count ??
+                                ev?.registrations_count ??
+                                0
+                            );
 							return (
 								<React.Fragment key={ev.id}>
 									<ListItem
@@ -418,6 +636,7 @@ const ManageMyCampaign = () => {
 													size="small"
 													variant="contained"
 													onClick={() => navigate(`/events/${ev.id}`)}
+													disabled={String(rawStatus || '').toLowerCase() === 'pending' || String(rawStatus || '').toLowerCase() === 'rejected'}
 													sx={{ bgcolor: '#16a34a', textTransform: 'none', fontWeight: 600, boxShadow: 'none', '&:hover': { bgcolor: '#15803d', boxShadow: 'none' } }}
 												>
 													Xem chi tiết
@@ -491,14 +710,11 @@ const ManageMyCampaign = () => {
 													<Chip size="small" label={st.text} color={st.color} variant={st.variant} icon={st.icon} sx={{ fontWeight: 500 }} />
 												</Box>
 											}
-											secondary={
-												locationName ? (
+												secondary={
 													<Typography sx={{ color: '#475569', mt: 0.25, fontSize: '.84rem' }}>
-														Địa điểm: <strong>{locationName}</strong>
-														{ev.start_time ? <span>{' — vào '}{fmtStartTime(ev.start_time)}</span> : null}
+														{totalJoined} người đã tham gia
 													</Typography>
-												) : undefined
-											}
+												}
 										/>
 									</ListItem>
 									{editingId === ev.id && (
@@ -506,16 +722,89 @@ const ManageMyCampaign = () => {
 											<DialogTitle sx={{ bgcolor: '#0ea5e9', color: '#fff', px: 2, pt: 2.5, pb: 3, mb: 0 }}>Chỉnh sửa chiến dịch</DialogTitle>
 											<DialogContent sx={{ mt: 2, pt: 3 }}>
 												<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, overflow: 'visible' }}>
+													{/* Title and Category */}
 													<TextField label="Tiêu đề" value={form.title} onChange={(e) => onFormChange('title', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth sx={{ mt: 1.5 }} />
-													<TextField label="Thể loại (category_id)" value={form.category_id} onChange={(e) => onFormChange('category_id', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth sx={{ mt: 1.5 }} />
-													<TextField label="Địa điểm (location_id)" value={form.location_id} onChange={(e) => onFormChange('location_id', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth />
-													<TextField label="Số lượng" value={form.capacity} onChange={(e) => onFormChange('capacity', e.target.value)} fullWidth />
-													<TextField label="Banner URL" value={form.banner_url} onChange={(e) => onFormChange('banner_url', e.target.value)} fullWidth />
+													<FormControl fullWidth sx={{ mt: 1.5 }}>
+														<InputLabel id="edit-category-select-label">Thể loại</InputLabel>
+														<Select
+															labelId="edit-category-select-label"
+															label="Thể loại"
+															value={form.category_id}
+															onChange={(e) => onFormChange('category_id', e.target.value)}
+														>
+															{categories.map((c) => (
+																<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+															))}
+														</Select>
+													</FormControl>
+
+													{/* Start and End time directly under title/category */}
 													<TextField label="Bắt đầu" type="datetime-local" value={form.start_time} onChange={(e) => onFormChange('start_time', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth />
 													<TextField label="Kết thúc" type="datetime-local" value={form.end_time} onChange={(e) => onFormChange('end_time', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth />
+
+													{/* Capacity displays as (capacity + total_joined); editing adjusts capacity accordingly */}
+													<TextField
+														label="Số lượng"
+														type="number"
+														value={Number(form.capacity || 0) + totalJoined}
+														onChange={(e) => {
+															const total = Number(e.target.value);
+															// Map typed total back to capacity; allow editing freely
+															const newCapacity = Number.isFinite(total) ? total - totalJoined : 0;
+															onFormChange('capacity', String(newCapacity));
+														}}
+														InputLabelProps={{ shrink: true }}
+														fullWidth
+													/>
+
+													{/* Location fields to mirror create dialog */}
+													<TextField label="Địa điểm - Tên" value={editLocation.name} onChange={(e) => setEditLocation((p) => ({ ...p, name: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+													<TextField label="Địa điểm - Số đường" value={editLocation.address_line} onChange={(e) => setEditLocation((p) => ({ ...p, address_line: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+													<TextField label="Quận/Huyện" value={editLocation.district} onChange={(e) => setEditLocation((p) => ({ ...p, district: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+													<TextField label="Tỉnh/Thành phố" value={editLocation.province} onChange={(e) => setEditLocation((p) => ({ ...p, province: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+													<TextField label="Quốc gia" value={editLocation.country} onChange={(e) => setEditLocation((p) => ({ ...p, country: e.target.value }))} InputLabelProps={{ shrink: true }} fullWidth />
+
+													{/* Description spanning full width */}
 													<TextField label="Mô tả" value={form.description} onChange={(e) => onFormChange('description', e.target.value)} multiline minRows={3} sx={{ gridColumn: { sm: '1 / -1' } }} fullWidth />
+
+													{/* Banner upload moved to bottom under description */}
+													<Box sx={{ gridColumn: { sm: '1 / -1' } }}>
+														<Typography variant="subtitle2" sx={{ mb: 0.5 }}>Ảnh banner</Typography>
+														<input
+															id={`edit-banner-input-${ev.id}`}
+															type="file"
+															accept="image/*"
+															style={{ display: 'none' }}
+															onChange={(e) => {
+																const files = e.target.files ? Array.from(e.target.files) : [];
+																setEditBannerFile(files[0] || null);
+															}}
+														/>
+														<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+															<Button variant="outlined" onClick={() => document.getElementById(`edit-banner-input-${ev.id}`)?.click()} sx={{ textTransform: 'none' }}>
+																Chọn ảnh
+															</Button>
+															{editBannerFile && (
+																<Button variant="text" color="error" sx={{ textTransform: 'none' }} onClick={() => setEditBannerFile(null)}>
+																	Xóa ảnh
+																</Button>
+															)}
+														</Box>
+														{/* Show new preview if selected, else current event banner */}
+														<Box sx={{ mt: 1 }}>
+															{editBannerPreview ? (
+																<Box component="img" src={editBannerPreview} alt="banner-preview" sx={{ maxWidth: '100%', height: 'auto', borderRadius: 1.5, border: '1px solid #e5e7eb' }} />
+															) : (
+																form.banner_url ? (
+																	<Box component="img" src={form.banner_url} alt="current-banner" sx={{ maxWidth: '100%', height: 'auto', borderRadius: 1.5, border: '1px solid #e5e7eb' }} />
+																) : null
+															)}
+														</Box>
+													</Box>
 												</Box>
-												<Typography sx={{ color: 'error.main', mt: 1 }}>{error}</Typography>
+												{editError ? (
+													<Typography sx={{ color: 'error.main', mt: 1 }}>{editError}</Typography>
+												) : null}
 											</DialogContent>
 											<DialogActions>
 												<Button onClick={cancelEditing} startIcon={<CloseIcon />} disabled={saving}>Hủy</Button>
@@ -558,11 +847,23 @@ const ManageMyCampaign = () => {
 			</Paper>
 			{/* Create new 	campaign dialog */}
 			<Dialog open={createOpen} onClose={closeCreateDialog} fullWidth maxWidth="md">
-				<DialogTitle sx={{ bgcolor: '#0ea5e9', color: '#fff', px: 2, pt: 2.5, pb: 2, mb: 0 }}>Tạo chiến dịch mới</DialogTitle>
+				<DialogTitle sx={{ bgcolor: '#2563eb', color: '#fff', px: 2, pt: 2.5, pb: 2, mb: 0 }}>Tạo chiến dịch mới</DialogTitle>
 				<DialogContent sx={{ pt: 2 }}>
 					<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
 						<TextField label="Tiêu đề" value={createForm.title} onChange={(e) => onCreateChange('title', e.target.value)} InputLabelProps={{ shrink: true }} sx={{ mt: 2 }}/>
-						<TextField label="Thể loại (category_id)" type="number" value={createForm.category_id} onChange={(e) => onCreateChange('category_id', e.target.value)} InputLabelProps={{ shrink: true }} sx={{ mt: 2 }} />
+						<FormControl sx={{ mt: 2 }}>
+							<InputLabel id="category-select-label">Thể loại</InputLabel>
+							<Select
+								labelId="category-select-label"
+								label="Thể loại"
+								value={createForm.category_id}
+								onChange={(e) => onCreateChange('category_id', e.target.value)}
+							>
+								{categories.map((c) => (
+									<MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+								))}
+							</Select>
+						</FormControl>
 						<TextField label="Ngày bắt đầu" type="datetime-local" value={createForm.start_time} onChange={(e) => onCreateChange('start_time', e.target.value)} InputLabelProps={{ shrink: true }} />
 						<TextField label="Ngày kết thúc" type="datetime-local" value={createForm.end_time} onChange={(e) => onCreateChange('end_time', e.target.value)} InputLabelProps={{ shrink: true }} />
 						<TextField label="Sức chứa" type="number" value={createForm.capacity} onChange={(e) => onCreateChange('capacity', e.target.value)} InputLabelProps={{ shrink: true }} />
@@ -573,6 +874,9 @@ const ManageMyCampaign = () => {
 						<TextField label="Quốc gia" value={createForm.location.country} onChange={(e) => onCreateChange('location.country', e.target.value)} InputLabelProps={{ shrink: true }} />
 					</Box>
 					<TextField sx={{ mt: 2 }} multiline minRows={3} label="Mô tả" value={createForm.description} onChange={(e) => onCreateChange('description', e.target.value)} InputLabelProps={{ shrink: true }} fullWidth />
+					{createError ? (
+						<Typography sx={{ color: 'error.main', mt: 1 }}>{createError}</Typography>
+					) : null}
 					{/* Banner upload moved below description */}
 					<Box sx={{ mt: 2 }}>
 						<Typography variant="subtitle2" sx={{ mb: 0.5 }}>Ảnh banner</Typography>

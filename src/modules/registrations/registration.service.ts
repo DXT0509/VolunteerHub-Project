@@ -9,14 +9,16 @@ export async function registerEvent(userId: number, eventId: number) {
   if (event.status !== "active") throw new Error("Sự kiện chưa được duyệt");
   if (new Date(event.start_time) < new Date())
     throw new Error("Sự kiện đã diễn ra");
-
+  if ( event.capacity !== null && event.capacity !== undefined && event.capacity < 1) {
+    throw new Error("Sự kiện đã đạt đến giới hạn số lượng tham gia");
+  }
   const existing = await prisma.registrations.findFirst({
     where: { user_id: userId, event_id: eventId },
   });
   if (existing && existing.status !== "cancelled") {
     throw new Error("Bạn đã đăng ký sự kiện này");
   }
-
+  
   const registration = existing
     ? await prisma.registrations.update({
         where: { id: existing.id },
@@ -47,7 +49,7 @@ export async function cancelRegistration(userId: number, eventId: number) {
     throw new Error("Không tìm thấy đăng ký hợp lệ");
 
   const event = await prisma.events.findUnique({ where: { id: reg.event_id } });
-  if (!event || new Date(event.start_time) < new Date())
+  if ((!event || new Date(event.start_time) < new Date()) && reg.status !== "pending")
     throw new Error("Không thể hủy sau khi sự kiện đã diễn ra");
 
   await prisma.registration_status_history.create({
@@ -58,6 +60,13 @@ export async function cancelRegistration(userId: number, eventId: number) {
       changed_by: userId,
     },
   });
+  
+  if (event !== null && event.capacity !== null && event.capacity !== undefined && reg.status === "approved") {
+    await prisma.events.update({
+      where: { id: event.id },
+      data: { capacity: { increment: 1 }, total_joined: { decrement: 1 } },
+    });
+  }
 
   return prisma.registrations.update({
     where: { id: reg.id },
@@ -86,6 +95,81 @@ export async function getUserRegistrations(userId: number) {
   });
 }
 
+
+export async function getPendingRegistrations(userId: number) {
+  return prisma.registrations.findMany({
+    where: {status: "pending",
+      event: { manager_id: userId }
+     },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          start_time: true,
+          end_time: true,
+          location: { select: { name: true, address_line: true, district: true, province: true, country: true  } },
+          status: true,
+          banner_url: true,
+          capacity: true,
+          total_joined: true,
+          description: true,
+          category: { select: { name: true } },
+        },
+      },
+      user: {
+        select: {
+          username: true,
+          full_name: true,
+          email: true,
+          phone: true,
+          avatar_url: true,
+          created_at: true,
+        },
+      },
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+export async function getApprovedRegistrations(userId: number) {
+  return prisma.registrations.findMany({
+    where: {status: "approved",
+      event: { manager_id: userId }
+    },
+    orderBy: {
+      event_id: "asc"
+    },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          start_time: true,
+          end_time: true,
+          location: { select: { name: true, address_line: true, district: true, province: true, country: true  } },
+          status: true,
+          banner_url: true,
+          capacity: true,
+          total_joined: true,
+          description: true,
+          category: { select: { name: true } },
+        },
+      },
+      user: {
+        select: {
+          username: true,
+          full_name: true,
+          email: true,
+          phone: true,
+          avatar_url: true,
+          created_at: true,
+        },
+      },
+    },
+  });
+}
+
 //Event Manager
 export async function updateRegistrationStatus(
   managerId: number,
@@ -97,7 +181,19 @@ export async function updateRegistrationStatus(
     include: { event: true, user: true },
   });
   if (!reg) throw new Error("Không tìm thấy đăng ký");
-
+  const event = await prisma.events.findUnique({ where: { id: reg.event_id } });
+  
+  if (
+    event?.capacity !== null &&
+    event?.capacity !== undefined &&
+    event.capacity < 1 &&
+    newStatus === "approved"
+  ) {
+    throw new Error("Sự kiện đã đạt đến giới hạn số lượng tham gia");
+  }
+  
+  
+  if (!event) throw new Error("Sự kiện không tồn tại");
   await prisma.registration_status_history.create({
     data: {
       registration_id: regId,
@@ -121,7 +217,7 @@ export async function updateRegistrationStatus(
 
     await prisma.events.update({
       where: { id: reg.event_id },
-      data: { total_joined: { increment: 1 } },
+      data: { total_joined: { increment: 1 }, capacity: { decrement: 1 } },
     });
 
     await sendNotification(
@@ -132,6 +228,12 @@ export async function updateRegistrationStatus(
       { eventId: reg.event_id }
     );
   } else if (newStatus === "rejected") {
+    if (reg.status === "approved") {
+      await prisma.events.update({
+        where: { id: reg.event_id },
+        data: { capacity: { increment: 1 }, total_joined: { decrement: 1 } },
+      });
+    }
     await sendNotification(
       reg.user_id,
       "Registration Rejected",
@@ -162,8 +264,8 @@ export async function finalizeRegistration(
   const atten = await prisma.event_attendance.findUnique({
     where: { id: regId },
   });
-  if (atten?.status !== "checked_out")
-    throw new Error("Chưa được check out thành công");
+  //if (atten?.status !== "checked_out")
+    //throw new Error("Chưa được check out thành công");
 
   await prisma.registration_status_history.create({
     data: {
@@ -190,7 +292,15 @@ export async function finalizeRegistration(
       { eventId: reg.event_id }
     );
   }
-
+  else {
+    await sendNotification(
+      reg.user_id,
+      "Event Absented",
+      "Bạn đã bị đánh dấu vắng mặt",
+      `Bạn đã bị đánh dấu vắng mặt cho sự kiện: ${reg.event.title}. Vui lòng chú ý nghiêm túc!!!`,
+      { eventId: reg.event_id }
+    );
+  }
   return prisma.registrations.update({
     where: { id: regId },
     data: { status: newStatus },

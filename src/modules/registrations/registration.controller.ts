@@ -37,6 +37,28 @@ export async function getUserRegistrations(req: AuthRequest, res: Response) {
   }
 }
 
+export async function getPendingRegistrations(req: AuthRequest, res: Response) {
+  try {
+    const result = await RegistrationService.getPendingRegistrations(
+      req.user!.userId
+    );
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+export async function getApprovedRegistrations(req: AuthRequest, res: Response) {
+  try {
+    const result = await RegistrationService.getApprovedRegistrations(
+      req.user!.userId
+    );
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
 export async function updateRegistrationStatus(
   req: AuthRequest,
   res: Response
