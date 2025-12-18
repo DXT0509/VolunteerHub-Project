@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "volunteer-hub",
   "private": true,
   "version": "0.0.0",
@@ -46,4 +47,25 @@
   "keywords": [],
   "author": "",
   "license": "ISC"
+=======
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon --inspect src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.3",
+    "express-handler": "^0.2.0",
+    "mysql2": "^3.15.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+>>>>>>> a9cae86cba6d5514e0123f1ebab1d3121561e0be
 }
