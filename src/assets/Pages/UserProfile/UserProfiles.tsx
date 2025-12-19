@@ -212,10 +212,10 @@ function StatusBadge({ status }: { status: User["status"] }) {
         >
             <span
                 className={`h-1.5 w-1.5 rounded-full ${status === "Active"
-                        ? "bg-emerald-500"
-                        : status === "Pending"
-                            ? "bg-amber-500"
-                            : "bg-gray-400"
+                    ? "bg-emerald-500"
+                    : status === "Pending"
+                        ? "bg-amber-500"
+                        : "bg-gray-400"
                     }`}
             />
             {status}
@@ -280,7 +280,7 @@ function UserInfoCard({
             if (form.avatarUrl && form.avatarUrl.startsWith("blob:")) {
                 try {
                     URL.revokeObjectURL(form.avatarUrl);
-                } catch {}
+                } catch { }
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -312,6 +312,7 @@ function UserInfoCard({
                         value={form.name}
                         onChange={handleChange("name")}
                         placeholder="Enter full name"
+                        layout="horizontal"
                         required
                     />
                     <TextField
@@ -342,7 +343,7 @@ function UserInfoCard({
                     />
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                     <TextField
                         label="Username"
                         value={form.username}
@@ -350,15 +351,17 @@ function UserInfoCard({
                         placeholder="yourusername"
                         layout="horizontal"
                     />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
                     <TextField
                         label="Avatar URL"
                         value={form.avatarUrl}
                         onChange={handleChange("avatarUrl")}
                         placeholder="https://..."
+                        layout="horizontal"
                     />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+
                     <label className="block">
                         <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Avatar Image
@@ -370,7 +373,10 @@ function UserInfoCard({
                             className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-transparent dark:text-white dark:focus:border-gray-500 dark:focus:ring-white/10"
                         />
                     </label>
-                    <PreviewAvatar url={form.avatarUrl} name={form.name} />
+                    <div className="w-30 h-30 flex items-center justify-center rounded-full overflow-hidden ">
+                        <PreviewAvatar url={form.avatarUrl} name={form.name} />
+                    </div>
+
                 </div>
 
                 <TextArea
