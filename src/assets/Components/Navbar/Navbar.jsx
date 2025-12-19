@@ -15,6 +15,9 @@ const Navbar = () => {
   const { i18n, t } = useTranslation();
   const [notificationCount, setNotificationCount] = useState(0);
   const [notifLoading, setNotifLoading] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const notifRef = React.useRef(null);
   const [openManageMobile, setOpenManageMobile] = useState(false);
   const [openAdminMobile, setOpenAdminMobile] = useState(false);
 
@@ -39,13 +42,25 @@ const Navbar = () => {
     return 0;
   };
 
+  const normalizeNotificationList = (data) => {
+    // Trả về mảng thông báo: hỗ trợ nhiều dạng phản hồi
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object') {
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data.items)) return data.items;
+    }
+    return [];
+  };
+
   const fetchNotifications = async () => {
     if (!NOTIFICATIONS_URL) return; // thiếu env thì bỏ qua
     try {
       setNotifLoading(true);
       const { data } = await axios(NOTIFICATIONS_URL);
       const count = normalizeNotificationCount(data);
+      const list = normalizeNotificationList(data);
       setNotificationCount(count);
+      setNotifications(list);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     } finally {
@@ -58,6 +73,18 @@ const Navbar = () => {
     const interval = setInterval(fetchNotifications, 30000); // poll mỗi 30s
     return () => clearInterval(interval);
   }, []);
+
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (!notifOpen) return;
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [notifOpen]);
 
   const handleLogout = () => {
     console.log("User logged out");
@@ -176,8 +203,20 @@ const Navbar = () => {
                 EN
               </button>
             </div>
-            {/* Nút thông báo */}
-            <button className="relative p-2 rounded-full hover:bg-gray-100">
+            {/* Nút thông báo + Dropdown */}
+            <div className="relative" ref={notifRef}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !notifOpen;
+                setNotifOpen(next);
+                if (next) fetchNotifications();
+              }}
+              className="relative p-2 rounded-full hover:bg-gray-100"
+              aria-haspopup="true"
+              aria-expanded={notifOpen}
+              aria-label="Notifications"
+            >
               <svg
                 className="h-6 w-6 text-gray-700"
                 xmlns="http://www.w3.org/2000/svg"
@@ -199,6 +238,44 @@ const Navbar = () => {
                 </span>
               )}
             </button>
+            {notifOpen && (
+              <div
+                className="absolute right-0 mt-2 w-80 max-w-[22rem] rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                role="menu"
+                aria-label="Notifications dropdown"
+              >
+                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t('nav.notifications') || 'Notifications'}</p>
+                  {notifLoading && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{t('common.loading') || 'Loading...'}</span>
+                  )}
+                </div>
+                <ul className="max-h-80 overflow-auto">
+                  {notifications.length === 0 && !notifLoading && (
+                    <li className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{t('nav.noNotifications') || 'No notifications'}</li>
+                  )}
+                  {notifications.map((n, idx) => (
+                    <li key={n.id || idx} className="px-3 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <div className="flex items-start gap-2">
+                        <div className={`mt-1 h-2 w-2 rounded-full ${n.read ? 'bg-gray-300' : 'bg-blue-500'}`} />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{n.title || n.message || n.text || 'New notification'}</p>
+                          {n.time && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{n.time}</p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 text-right">
+                  <Link to="/notifications" className="text-sm text-blue-600 hover:underline">
+                    {t('nav.viewAll') || 'View all'}
+                  </Link>
+                </div>
+              </div>
+            )}
+            </div>
             {user ? (
               <div className="flex items-center space-x-2">
                 {user.photoURL ? (
@@ -212,7 +289,20 @@ const Navbar = () => {
                     {user.displayName[0]}
                   </div>
                 )}
-                <span className="text-gray-700">{user.displayName}</span>
+                <Link
+                  to="/user-profile"
+                  state={{
+                    username: (user.displayName || "").toLowerCase().replace(/\s+/g, ""),
+                    email: user.email || undefined,
+                    full_name: user.displayName || undefined,
+                    avatar_url: user.photoURL || undefined,
+                    phone: undefined,
+                  }}
+                  className="text-gray-700 hover:text-blue-600"
+                  aria-label="Go to user profile"
+                >
+                  {user.displayName}
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -378,7 +468,21 @@ const Navbar = () => {
           )}
           {user ? (
             <div className="px-3 py-2 border-t border-gray-200 flex flex-col space-y-1">
-              <span className="text-gray-700">{user.displayName}</span>
+              <Link
+                to="/user-profile"
+                state={{
+                  username: (user.displayName || "").toLowerCase().replace(/\s+/g, ""),
+                  email: user.email || undefined,
+                  full_name: user.displayName || undefined,
+                  avatar_url: user.photoURL || undefined,
+                  phone: undefined,
+                }}
+                className="text-gray-700 hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+                aria-label="Go to user profile"
+              >
+                {user.displayName}
+              </Link>
               <button
                 onClick={handleLogout}
                 className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"

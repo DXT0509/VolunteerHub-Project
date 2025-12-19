@@ -8,6 +8,8 @@ import Home from "../Pages/HomePage/Home/Home.jsx";
 import ErrorPage from "../Pages/ErrorPage/ErrorPage";
 import FaqPage from "../Pages/HomePage/VolunteerNeeds/FaqPage.jsx";
 import NeedVolunteer from "../Pages/NeedVolunteer/NeedVolunteer.jsx";
+// Import TSX profile component (omit extension for cross-platform)
+import UserProfileStandalone from "../Pages/UserProfile/UserProfiles";
 
 const router = createBrowserRouter([
   {
@@ -27,7 +29,10 @@ const router = createBrowserRouter([
         path: "support",
         element: <FaqPage />,
       },
-
+      {
+        path: "user-profile",
+        element: <UserProfileStandalone />,
+      },
     ],
   },
 ]);
