@@ -105,8 +105,8 @@ export default function FaqPage({ title = "FAQ 1" }) {
       id: "getting-started",
       title: "Getting Started",
       items: [
-        { id: 1, q: "Cách đăng ký tài khoản?", a: "Nội dung trả lời..." },
-        { id: 2, q: "Cách đăng nhập?", a: "Nội dung trả lời..." },
+        { id: 1, q: "Cách đăng ký tài khoản?", a: "Nhấp vào mục đăng ký, điền thông tin và xác nhận." },
+        { id: 2, q: "Cách đăng ký làm tình nguyện viên?", a: "Nội dung trả lời..." },
         { id: 3, q: "Quên mật khẩu xử lý thế nào?", a: "Nội dung trả lời..." },
       ],
     },
@@ -121,7 +121,7 @@ export default function FaqPage({ title = "FAQ 1" }) {
       ],
     },
   ];
-  
+
   useEffect(() => {
     if (title && typeof document !== "undefined") {
       document.title = title;
@@ -169,14 +169,14 @@ export default function FaqPage({ title = "FAQ 1" }) {
                   : "opacity-0 translate-y-6",
               ].join(" ")}
             >
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labe et dolore magna aliqua. Bạn có thể tối thiểu hóa lợi ích của mình. Hình ảnh từ
+              First time using VolunteerHub? Don't worry! Here are some frequently asked questions.
               <a
                 href="https://www.freepik.com/"
                 target="_blank"
                 rel="noreferrer"
                 className="ml-1 underline text-primary hover:opacity-90"
               >
-                Freepik
+                
               </a>
             </p>
 
@@ -185,7 +185,7 @@ export default function FaqPage({ title = "FAQ 1" }) {
             >
               <div ref={leftBtnReveal.ref}>
                 <a
-                  href="#"
+                  href="https://www.facebook.com/thainguyenzeno"
                   className={[
                     "inline-block",
                     "uppercase tracking-wide font-bold text-sm",
@@ -197,12 +197,12 @@ export default function FaqPage({ title = "FAQ 1" }) {
                       : "opacity-0 -translate-x-8",
                   ].join(" ")}
                 >
-                  Sứ mệnh của chúng tôi
+                  Trang cộng đồng
                 </a>
               </div>
               <div ref={rightBtnReveal.ref} className="text-left sm:text-left">
                 <a
-                  href="#"
+                  href="https://www.youtube.com/@xt-aorongmobile9890"
                   className={[
                     "inline-block",
                     "uppercase tracking-wide font-bold text-sm",
@@ -214,7 +214,7 @@ export default function FaqPage({ title = "FAQ 1" }) {
                       : "opacity-0 translate-x-8",
                   ].join(" ")}
                 >
-                  Quyên góp ngay
+                  Kênh Youtube
                 </a>
               </div>
             </div>

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { IoLocationSharp } from "react-icons/io5";
 import { FaPhoneSquareAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import logo from "../../images/Minimalist local charity logo with helping hands.svg";
+import logo from "./logo.png";
 
 const Footer = () => {
   return (
@@ -27,9 +27,9 @@ const Footer = () => {
         </div>
 
         {/* FOOTER CONTENT */}
-        <div className="grid grid-cols-2 text-sm gap-x-3 gap-y-8 lg:w-2/3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 text-sm gap-x-10 gap-y-8 lg:w-2/3 sm:grid-cols-4">
           
-          {/* PRODUCT */}
+          {/* PRODUCT
           <div className="space-y-3">
             <h3 className="tracking-wide uppercase text-gray-900 font-bold">
               Product
@@ -39,9 +39,9 @@ const Footer = () => {
               <li><a href="#" rel="noopener noreferrer">Integrations</a></li>
               <li><a href="#" rel="noopener noreferrer">FAQ</a></li>
             </ul>
-          </div>
+          </div> */}
 
-          {/* COMPANY */}
+          {/* COMPANY
           <div className="space-y-3">
             <h3 className="tracking-wide uppercase text-gray-900 font-bold">
               Company
@@ -50,7 +50,7 @@ const Footer = () => {
               <li><a href="#" rel="noopener noreferrer">Privacy</a></li>
               <li><a href="#" rel="noopener noreferrer">Terms of Service</a></li>
             </ul>
-          </div>
+          </div> */}
 
           {/* CONTACT */}
           <div className="space-y-3">
@@ -59,7 +59,7 @@ const Footer = () => {
               <li>
                 <a href="tel:+8801761624031" className="flex gap-2 items-center">
                   <FaPhoneSquareAlt className="size-6" />
-                  +88 01761624031
+                  +34 123456789
                 </a>
               </li>
               <li>
@@ -68,12 +68,12 @@ const Footer = () => {
                   className="flex gap-2 items-center"
                 >
                   <MdEmail className="size-6" />
-                  nahidbinwadood@gmail.com
+                  thainguyenzeno@gmail.com
                 </a>
               </li>
               <li className="flex gap-2 items-center">
                 <IoLocationSharp className="size-6" />
-                <span>Dhaka, Bangladesh</span>
+                <span>Hanoi, Vietnam</span>
               </li>
             </ul>
           </div>
@@ -142,7 +142,7 @@ const Footer = () => {
 
       {/* COPYRIGHT */}
       <div className="py-6 text-sm text-center text-white">
-        © 2024 VolunteerHub Company Co. All rights reserved.
+        © 2025 VolunteerHub Team.  All rights reserved.
       </div>
     </footer>
   );

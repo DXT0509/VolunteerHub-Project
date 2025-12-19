@@ -3,6 +3,7 @@ import VolunteerNeedsCard from "./VolunteerNeedsCard";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { Button } from "@material-tailwind/react";
+import { useTranslation } from 'react-i18next';
 const VolunteerNeeds = () => {
   // const [volunteers, setVolunteers] = useState([]);
   // useEffect(() => {
@@ -15,6 +16,7 @@ const VolunteerNeeds = () => {
   //   volunteers();
   // }, []);
   const MAX_SHOW = 6;
+  const { t } = useTranslation();
   const [volunteers] = useState([
     {
       _id: 1,
@@ -93,12 +95,10 @@ const VolunteerNeeds = () => {
         data-aos-easing="linear"
         data-aos-duration="1000" className="container mx-auto">
         <h2 className="text-3xl md:text-5xl font-bold text-center ">
-          Volunteer Needs Now
+          {t('home.volunteerNeeds.title')}
         </h2>
         <p className="w-2/3 mx-auto mt-4 text-center leading-relaxed text-gray-600">
-          Volunteer Needs Now is the pulse of our community engagement. This
-          section highlights current opportunities where your time and skills
-          can make an immediate impact.
+          {t('home.volunteerNeeds.desc')}
         </p>
       </div>
 
@@ -114,7 +114,7 @@ const VolunteerNeeds = () => {
             <Link to="/need-volunteer">
               <Button className=" px-10 py-4 text-2xl rounded-xl !text-white bg-blue-400 hover:bg-orange-400"
                 variant="gradient">
-                SEE ALL
+                {t('home.volunteerNeeds.seeAll')}
               </Button>
             </Link>
           </div>

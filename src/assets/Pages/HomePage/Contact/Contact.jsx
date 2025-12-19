@@ -1,21 +1,23 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const Contact = () => {
+  const { t } = useTranslation();
   return (
-    <div className="mt-40 container mx-auto">
-        <h2 data-aos="fade-right" data-aos-easing="linear" data-aos-duration="1500" className="inter text-5xl font-bold text-center ">Contact Us </h2>
+    <div id="contact" className="mt-40 container mx-auto">
+      <h2 data-aos="fade-right" data-aos-easing="linear" data-aos-duration="1500" className="inter text-5xl font-bold text-center ">{t('home.contact.header')}</h2>
       <div data-aos="fade-up" data-aos-easing="linear" data-aos-duration="1000"
-       className="container raleway pb-10 md:pb-20 md:pt-10 mx-auto mt-10 px-5 lg:px-0">
+        className="container raleway pb-10 md:pb-20 md:pt-10 mx-auto mt-10 px-5 lg:px-0">
         <section className="py-10 ws bg-gray-800 rounded-xl sm:py-16 ">
           <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:items-stretch md:grid-cols-2 gap-x-12 lg:gap-x-20 gap-y-10">
               <div className="flex flex-col justify-between lg:py-5">
                 <div>
                   <h2 className="text-3xl font-bold leading-tight text-white m:text-4xl lg:leading-tight lg:text-5xl">
-                    It’s time to experience and do something exciting!
+                    {t('home.contact.heroTitle')}
                   </h2>
                   <p className="max-w-xl text-white mx-auto mt-4 text-base leading-relaxed ">
-                    We are helping our community through volunteering and here you guys can post your to get your desired volunteers.
+                    {t('home.contact.heroDesc')}
                   </p>
 
                   <img
@@ -91,7 +93,7 @@ const Contact = () => {
                     />
                     <div className="ml-4">
                       <p className="text-base font-semibold text-white">
-                        Jenny Wilson
+                        Thao Dao
                       </p>
                       <p className="mt-px text-sm text-gray-400">
                         Professor
@@ -105,26 +107,24 @@ const Contact = () => {
                 <div className="overflow-hidden bg-white rounded-md">
                   <div className="p-6 sm:p-10">
                     <h3 className="text-3xl font-bold text-black">
-                      Send us a message
+                      {t('home.contact.formTitle')}
                     </h3>
                     <p className="mt-4 text-base text-gray-600">
-                      Feel free to contact with us. We will response within 24
-                      hour.
+                      {t('home.contact.formDesc')}
                     </p>
 
                     <form action="#" method="POST" className="mt-4">
                       <div className="space-y-6">
                         <div>
                           <label className="text-base font-medium text-gray-900">
-                            {" "}
-                            Your name{" "}
+                            {t('home.contact.nameLabel')}
                           </label>
                           <div className="mt-2.5 relative">
                             <input
                               type="text"
                               name=""
                               id=""
-                              placeholder="Enter your full name"
+                              placeholder={t('home.contact.namePlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                             />
                           </div>
@@ -132,15 +132,14 @@ const Contact = () => {
 
                         <div>
                           <label className="text-base font-medium text-gray-900">
-                            {" "}
-                            Email address{" "}
+                            {t('home.contact.emailLabel')}
                           </label>
                           <div className="mt-2.5 relative">
                             <input
                               type="text"
                               name=""
                               id=""
-                              placeholder="Enter your full name"
+                              placeholder={t('home.contact.emailPlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                             />
                           </div>
@@ -148,14 +147,13 @@ const Contact = () => {
 
                         <div>
                           <label className="text-base font-medium text-gray-900">
-                            {" "}
-                            Your Message{" "}
+                            {t('home.contact.messageLabel')}
                           </label>
                           <div className="mt-2.5 relative">
                             <textarea
                               name=""
                               id=""
-                              placeholder="Enter your message"
+                              placeholder={t('home.contact.messagePlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                               rows="4"
                             ></textarea>
@@ -164,7 +162,7 @@ const Contact = () => {
 
                         <div>
                           <Link className="inline-flex items-center justify-center w-full px-4 py-4 text-base font-semibold text-white transition-all duration-200 bg-[#59C6D2] border border-transparent rounded-md focus:outline-none hover:bg-[#59C6D2] focus:bg-[#59C6D2]">
-                            Send Message
+                            {t('home.contact.sendBtn')}
                           </Link>
                         </div>
                       </div>
@@ -233,7 +231,7 @@ const Contact = () => {
                   />
                   <div className="ml-4">
                     <p className="text-base font-semibold text-white">
-                      Jenny Wilson
+                      Thao Dao
                     </p>
                     <p className="mt-px text-sm text-gray-400">
                       Product Designer
