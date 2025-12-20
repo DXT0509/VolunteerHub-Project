@@ -34,8 +34,8 @@ const Blog = () => {
                   Optimizing volunteer management with technology.
                 </Link>
               </p>
-              <p className="mt-4 text-gray-500">
-                {t('home.blog.items.1.desc')}
+              <p className="mt-4 text-gray-500 text-left">
+                Optimizing volunteer management with technology improves coordination and efficiency. Digital tools simplify communication and task management, helping organizations maximize their impact.
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
@@ -49,15 +49,15 @@ const Blog = () => {
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                Initiative
+                initiative
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <Link to="/article/2" title="">
                   Balancing remote work with volunteer work.
                 </Link>
               </p>
-              <p className="mt-4 text-gray-500">
-                {t('home.blog.items.2.desc')}
+              <p className="mt-4 text-gray-500 text-left">
+                Balancing remote work with volunteer work allows individuals to contribute to their careers and communities simultaneously. With the right tools and time management, both can be done effectively and sustainably.
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
@@ -78,8 +78,8 @@ const Blog = () => {
                   Spreading the spirit of volunteerism in the community.
                 </Link>
               </p>
-              <p className="mt-4 text-gray-500">
-                {t('home.blog.items.3.desc')}
+              <p className="mt-4 text-gray-500 text-left">
+                Spreading the spirit of volunteerism in the community encourages individuals to take action and support one another. Small efforts can create meaningful change and inspire collective impact.
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
