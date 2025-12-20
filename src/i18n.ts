@@ -42,6 +42,23 @@ const resources = {
                     header: 'Latest Articles & Blog',
                     desc:
                         'Discover our latest articles and blog posts for insightful perspectives, expert advice, and timely updates on a diverse range of topics. Stay informed, inspired, and engaged with our thought-provoking content. Explore now for fresh insights and ideas.',
+                    posts: {
+                        1: {
+                            category: 'Technology',
+                            title: 'Optimizing volunteer management with technology.',
+                            desc: 'Optimizing volunteer management with technology improves coordination and efficiency. Digital tools simplify communication and task management, helping organizations maximize their impact.',
+                        },
+                        2: {
+                            category: 'Initiative',
+                            title: 'Balancing remote work with volunteer work.',
+                            desc: 'Balancing remote work with volunteer work allows individuals to contribute to their careers and communities simultaneously. With the right tools and time management, both can be done effectively and sustainably.',
+                        },
+                        3: {
+                            category: 'Inspire',
+                            title: 'Spreading the spirit of volunteerism in the community.',
+                            desc: 'Spreading the spirit of volunteerism in the community encourages individuals to take action and support one another. Small efforts can create meaningful change and inspire collective impact.',
+                        },
+                    },
                 },
                 contact: {
                     header: 'Contact Us',
@@ -127,6 +144,23 @@ const resources = {
                     header: 'Bài Viết & Blog Mới Nhất',
                     desc:
                         'Khám phá các bài viết và blog mới nhất với góc nhìn sâu sắc, lời khuyên hữu ích và cập nhật kịp thời. Luôn nắm bắt, truyền cảm hứng và tương tác với nội dung giàu suy ngẫm. Bắt đầu ngay để có thêm ý tưởng mới.',
+                    posts: {
+                        1: {
+                            category: 'Công nghệ',
+                            title: 'Tối ưu quản lý tình nguyện bằng công nghệ.',
+                            desc: 'Tối ưu quản lý tình nguyện bằng công nghệ giúp cải thiện phối hợp và hiệu quả. Công cụ số đơn giản hoá giao tiếp và quản lý nhiệm vụ, giúp tổ chức tối đa hoá tác động.',
+                        },
+                        2: {
+                            category: 'Sáng kiến',
+                            title: 'Cân bằng làm việc từ xa với công việc tình nguyện.',
+                            desc: 'Cân bằng làm việc từ xa với công việc tình nguyện cho phép đóng góp song song cho sự nghiệp và cộng đồng. Với công cụ phù hợp và quản lý thời gian, cả hai đều có thể thực hiện hiệu quả và bền vững.',
+                        },
+                        3: {
+                            category: 'Truyền cảm hứng',
+                            title: 'Lan toả tinh thần tình nguyện trong cộng đồng.',
+                            desc: 'Lan toả tinh thần tình nguyện trong cộng đồng khuyến khích mọi người hành động và hỗ trợ lẫn nhau. Những nỗ lực nhỏ có thể tạo nên thay đổi ý nghĩa và truyền cảm hứng cho tác động tập thể.',
+                        },
+                    },
                 },
                 contact: {
                     header: 'Liên hệ',

@@ -27,15 +27,15 @@ const Blog = () => {
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-rose-500 bg-rose-100 mt-9">
-                Technology
+                {t('home.blog.posts.1.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <Link to="/article/1" title="">
-                  Optimizing volunteer management with technology.
+                  {t('home.blog.posts.1.title')}
                 </Link>
               </p>
               <p className="mt-4 text-gray-500 text-left">
-                Optimizing volunteer management with technology improves coordination and efficiency. Digital tools simplify communication and task management, helping organizations maximize their impact.
+                {t('home.blog.posts.1.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
@@ -49,15 +49,15 @@ const Blog = () => {
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                initiative
+                {t('home.blog.posts.2.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <Link to="/article/2" title="">
-                  Balancing remote work with volunteer work.
+                  {t('home.blog.posts.2.title')}
                 </Link>
               </p>
               <p className="mt-4 text-gray-500 text-left">
-                Balancing remote work with volunteer work allows individuals to contribute to their careers and communities simultaneously. With the right tools and time management, both can be done effectively and sustainably.
+                {t('home.blog.posts.2.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
@@ -71,15 +71,15 @@ const Blog = () => {
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                Inspire
+                {t('home.blog.posts.3.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <Link to="/article/3" title="">
-                  Spreading the spirit of volunteerism in the community.
+                  {t('home.blog.posts.3.title')}
                 </Link>
               </p>
               <p className="mt-4 text-gray-500 text-left">
-                Spreading the spirit of volunteerism in the community encourages individuals to take action and support one another. Small efforts can create meaningful change and inspire collective impact.
+                {t('home.blog.posts.3.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
             </div>
