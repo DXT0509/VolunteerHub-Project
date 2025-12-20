@@ -19,19 +19,19 @@ const Blog = () => {
         <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid  max-w-md grid-cols-1 mx-auto mt-12 lg:max-w-full lg:mt-16 lg:grid-cols-3 gap-x-16 gap-y-12">
             <div>
-              <Link to="/article/1" title={t('home.blog.items.1.title')} className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/1" title="" className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://images.squarespace-cdn.com/content/v1/5e959b5110e0e16067a04ae5/a606d14e-6e13-4d3b-af85-4a1ce2f8eeeb/Volunteer+Managers+Choosing+Volunteer+Management+Software.png?format=2500w"
-                  alt={t('home.blog.items.1.title')}
+                  alt=""
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-rose-500 bg-rose-100 mt-9">
-                {t('home.blog.items.1.category')}
+                Technology
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <Link to="/article/1" title={t('home.blog.items.1.title')}>
-                  {t('home.blog.items.1.title')}
+                <Link to="/article/1" title="">
+                  Optimizing volunteer management with technology.
                 </Link>
               </p>
               <p className="mt-4 text-gray-500">
@@ -41,19 +41,19 @@ const Blog = () => {
             </div>
 
             <div>
-              <Link to="/article/2" title={t('home.blog.items.2.title')} className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/2" title="" className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://assets-global.website-files.com/618ec2e36c7ec23e185f0a7e/65f3faf100b564c42b63ad69_Working%20from%20home.jpg"
-                  alt={t('home.blog.items.2.title')}
+                  alt=""
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                {t('home.blog.items.2.category')}
+                Initiative
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <Link to="/article/2" title={t('home.blog.items.2.title')}>
-                  {t('home.blog.items.2.title')}
+                <Link to="/article/2" title="">
+                  Balancing remote work with volunteer work.
                 </Link>
               </p>
               <p className="mt-4 text-gray-500">
@@ -63,19 +63,19 @@ const Blog = () => {
             </div>
 
             <div>
-              <Link to="/article/3" title={t('home.blog.items.3.title')} className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/3" title="" className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://www.pointsoflight.org/wp-content/uploads/2023/02/dreamstime_m_198117357-1024x677.jpg"
-                  alt={t('home.blog.items.3.title')}
+                  alt=""
                 />
               </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                {t('home.blog.items.3.category')}
+                Inspire
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <Link to="/article/3" title={t('home.blog.items.3.title')}>
-                  {t('home.blog.items.3.title')}
+                <Link to="/article/3" title="">
+                  Spreading the spirit of volunteerism in the community.
                 </Link>
               </p>
               <p className="mt-4 text-gray-500">
