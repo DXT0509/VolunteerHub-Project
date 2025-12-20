@@ -69,6 +69,9 @@ const NeedVolunteer = ({ title }) => {
   const [volunteers, setVolunteers] = useState([]);
   const [search, setSearch] = useState("");
   const [searchText, setSearchText] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
@@ -142,6 +145,32 @@ const NeedVolunteer = ({ title }) => {
     return sorted;
   }, [volunteers, selectedCategory, deadlineSort]);
 
+  const allTitles = React.useMemo(() => {
+    const arr = Array.isArray(volunteers) ? volunteers : [];
+    const sample = SAMPLE_VOLUNTEERS;
+    const titles = [...arr, ...sample]
+      .map((v) => v?.post_title)
+      .filter(Boolean);
+    return Array.from(new Set(titles));
+  }, [volunteers]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const q = (searchText || "").trim().toLowerCase();
+      if (!q) {
+        setSuggestions([]);
+        setActiveSuggestionIndex(-1);
+        return;
+      }
+      const filtered = allTitles
+        .filter((t) => t.toLowerCase().includes(q))
+        .slice(0, 8);
+      setSuggestions(filtered);
+      setActiveSuggestionIndex(filtered.length ? 0 : -1);
+    }, 150);
+    return () => clearTimeout(handler);
+  }, [searchText, allTitles]);
+
   const handleChange = (event, nextView) => {
     setView(nextView);
   };
@@ -149,6 +178,8 @@ const NeedVolunteer = ({ title }) => {
   const handleSearch = () => {
     console.log("searching text is", searchText);
     setSearch(searchText);
+    setShowSuggestions(false);
+    setActiveSuggestionIndex(-1);
   };
 
   const handleGrid = (e) => {
@@ -268,24 +299,83 @@ const NeedVolunteer = ({ title }) => {
           data-aos-duration="1000"
           className="flex container  mx-auto justify-center my-8 md:justify-end"
         >
-          <div className="flex p-1  border rounded-lg    focus-within:ring focus-within:ring-opacity-40 focus-within:border-blue-400 focus-within:ring-blue-300">
-            <input
-              className="px-6 py-2 border-none text-gray-700 placeholder-gray-500 bg-white outline-none focus:placeholder-transparent"
-              type="text"
-              onChange={(e) => setSearchText(e.target.value)}
-              value={searchText}
-              name="search"
-              placeholder="Enter the Post Title"
-              aria-label="Enter the Post Title"
-            />
+          <div className="relative w-full max-w-xl">
+            <div className="flex p-1 border rounded-lg bg-white focus-within:ring focus-within:ring-opacity-40 focus-within:border-blue-400 focus-within:ring-blue-300">
+              <input
+                className="flex-1 px-6 py-2 border-none text-gray-700 placeholder-gray-500 bg-transparent outline-none focus:placeholder-transparent"
+                type="text"
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={(e) => {
+                  if (!showSuggestions || suggestions.length === 0) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveSuggestionIndex((prev) => {
+                      const next = prev + 1;
+                      return next >= suggestions.length ? 0 : next;
+                    });
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveSuggestionIndex((prev) => {
+                      const next = prev - 1;
+                      return next < 0 ? suggestions.length - 1 : next;
+                    });
+                  } else if (e.key === "Enter") {
+                    if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
+                      const chosen = suggestions[activeSuggestionIndex];
+                      setSearchText(chosen);
+                      setSearch(chosen);
+                      setShowSuggestions(false);
+                      setActiveSuggestionIndex(-1);
+                    } else {
+                      handleSearch();
+                    }
+                  } else if (e.key === "Escape") {
+                    setShowSuggestions(false);
+                    setActiveSuggestionIndex(-1);
+                  }
+                }}
+                value={searchText}
+                name="search"
+                placeholder="Enter the Post Title"
+                aria-label="Enter the Post Title"
+              />
 
-            <button
-              onClick={() => handleSearch()}
-              type="button"
-              className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium uppercase leading-normal text-white shadow transition duration-150 ease-in-out hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800"
-            >
-              Search
-            </button>
+              <button
+                onClick={() => handleSearch()}
+                type="button"
+                className="inline-block rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium uppercase leading-normal text-white shadow transition duration-150 ease-in-out hover:bg-blue-700 focus:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800"
+              >
+                Search
+              </button>
+            </div>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full max-h-64 overflow-auto rounded-lg border border-gray-200 bg-white shadow">
+                {suggestions.map((s, idx) => (
+                  <li
+                    key={`${s}-${idx}`}
+                    className={
+                      (idx === activeSuggestionIndex
+                        ? "bg-blue-50"
+                        : "bg-white") +
+                      " cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+                    }
+                    onMouseDown={() => {
+                      setSearchText(s);
+                      setSearch(s);
+                      setShowSuggestions(false);
+                      setActiveSuggestionIndex(-1);
+                    }}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

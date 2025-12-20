@@ -10,6 +10,7 @@ import FaqPage from "../Pages/HomePage/VolunteerNeeds/FaqPage.jsx";
 import NeedVolunteer from "../Pages/NeedVolunteer/NeedVolunteer.jsx";
 // Import TSX profile component (omit extension for cross-platform)
 import UserProfileStandalone from "../Pages/UserProfile/UserProfiles";
+import Article from "../Pages/HomePage/Blog/Article";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const router = createBrowserRouter([
       {
         path: "user-profile",
         element: <UserProfileStandalone />,
+      },
+      {
+        path: "article/:id",
+        element: <Article />,
       },
     ],
   },

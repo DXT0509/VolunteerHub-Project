@@ -3,7 +3,7 @@ import React from 'react';
 
 const Contact = () => {
   const { t } = useTranslation();
-  const [form, setForm] = React.useState({ name: '', email: '', message: '' });
+  const [form, setForm] = React.useState({ name: '', email: ''  , message: '' });
   const [sending, setSending] = React.useState(false);
   const [feedback, setFeedback] = React.useState('');
 

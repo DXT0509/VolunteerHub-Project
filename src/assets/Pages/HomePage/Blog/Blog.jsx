@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 const Blog = () => {
   const { t } = useTranslation();
   return (
@@ -18,78 +19,69 @@ const Blog = () => {
         <div className="px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid  max-w-md grid-cols-1 mx-auto mt-12 lg:max-w-full lg:mt-16 lg:grid-cols-3 gap-x-16 gap-y-12">
             <div>
-              <a href="#" title="" className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/1" title={t('home.blog.items.1.title')} className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://images.squarespace-cdn.com/content/v1/5e959b5110e0e16067a04ae5/a606d14e-6e13-4d3b-af85-4a1ce2f8eeeb/Volunteer+Managers+Choosing+Volunteer+Management+Software.png?format=2500w"
-                  alt=""
+                  alt={t('home.blog.items.1.title')}
                 />
-              </a>
+              </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-rose-500 bg-rose-100 mt-9">
                 {t('home.blog.items.1.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <a href="#" title="">
+                <Link to="/article/1" title={t('home.blog.items.1.title')}>
                   {t('home.blog.items.1.title')}
-                </a>
+                </Link>
               </p>
               <p className="mt-4 text-gray-500">
                 {t('home.blog.items.1.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
-              <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {t('home.blog.items.1.author')} {t('home.blog.items.1.date')}
-              </span>
             </div>
 
             <div>
-              <a href="#" title="" className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/2" title={t('home.blog.items.2.title')} className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://assets-global.website-files.com/618ec2e36c7ec23e185f0a7e/65f3faf100b564c42b63ad69_Working%20from%20home.jpg"
-                  alt=""
+                  alt={t('home.blog.items.2.title')}
                 />
-              </a>
+              </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
                 {t('home.blog.items.2.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <a href="#" title="">
+                <Link to="/article/2" title={t('home.blog.items.2.title')}>
                   {t('home.blog.items.2.title')}
-                </a>
+                </Link>
               </p>
               <p className="mt-4 text-gray-500">
                 {t('home.blog.items.2.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
-              <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {t('home.blog.items.2.author')} {t('home.blog.items.2.date')}
-              </span>
             </div>
 
             <div>
-              <a href="#" title="" className="block aspect-w-4 aspect-h-3">
+              <Link to="/article/3" title={t('home.blog.items.3.title')} className="block aspect-w-4 aspect-h-3">
                 <img
                   className="object-cover w-full h-60"
                   src="https://www.pointsoflight.org/wp-content/uploads/2023/02/dreamstime_m_198117357-1024x677.jpg"
-                  alt=""
+                  alt={t('home.blog.items.3.title')}
                 />
-              </a>
+              </Link>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
                 {t('home.blog.items.3.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
-                <a href="#" title="">
+                <Link to="/article/3" title={t('home.blog.items.3.title')}>
                   {t('home.blog.items.3.title')}
-                </a>
+                </Link>
               </p>
               <p className="mt-4 text-gray-500">
                 {t('home.blog.items.3.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
-              <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {t('home.blog.items.3.author')} {t('home.blog.items.3.date')}
-              </span>
             </div>
           </div>
         </div>

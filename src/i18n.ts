@@ -42,29 +42,6 @@ const resources = {
                     header: 'Latest Articles & Blog',
                     desc:
                         'Discover our latest articles and blog posts for insightful perspectives, expert advice, and timely updates on a diverse range of topics. Stay informed, inspired, and engaged with our thought-provoking content. Explore now for fresh insights and ideas.',
-                    items: {
-                        1: {
-                            category: 'Explanatory',
-                            title: 'Optimizing Engagement: The Evolution of Volunteer Management Systems',
-                            desc: 'Delve into the dynamic landscape of Volunteer Management Systems (VMS). From traditional spreadsheets to modern cloud-based solutions, this blog explores how VMS have evolved to enhance volunteer engagement, streamline operations, and drive organizational impact.',
-                            author: 'Oliver Omnibus.',
-                            date: 'June 12, 2023',
-                        },
-                        2: {
-                            category: 'Inspirational',
-                            title: 'Empowering Volunteers: Leveraging Technology for Effective Volunteer Management',
-                            desc: 'Uncover the ways in which Volunteer Management Systems empower volunteers. This blog examines how user-friendly interfaces, mobile apps, and communication tools provided by VMS facilitate seamless volunteer recruitment, training, and recognition, ultimately fostering a more fulfilling volunteer experience.',
-                            author: 'Liam Literary .',
-                            date: 'June 12, 2023',
-                        },
-                        3: {
-                            category: 'Guidance',
-                            title: 'Data-Driven Insights: Harnessing the Power of Volunteer Management Systems',
-                            desc: 'Learn how Volunteer Management Systems leverage data analytics to drive strategic decision-making. This blog illuminates how VMS generate valuable insights into volunteer preferences, performance metrics, and engagement trends, enabling organizations to optimize their volunteer programs for maximum impact.',
-                            author: 'Sofia Storyteller .',
-                            date: 'January 12, 2024',
-                        },
-                    },
                 },
                 contact: {
                     header: 'Contact Us',
@@ -150,29 +127,6 @@ const resources = {
                     header: 'Bài Viết & Blog Mới Nhất',
                     desc:
                         'Khám phá các bài viết và blog mới nhất với góc nhìn sâu sắc, lời khuyên hữu ích và cập nhật kịp thời. Luôn nắm bắt, truyền cảm hứng và tương tác với nội dung giàu suy ngẫm. Bắt đầu ngay để có thêm ý tưởng mới.',
-                    items: {
-                        1: {
-                            category: 'Giải thích',
-                            title: 'Tối ưu hoá tương tác: Sự phát triển của Hệ thống quản lý tình nguyện',
-                            desc: 'Khám phá bức tranh năng động của các Hệ thống quản lý tình nguyện (VMS). Từ bảng tính truyền thống đến các giải pháp hiện đại trên nền tảng đám mây, bài viết này cho thấy VMS đã phát triển để nâng cao mức độ gắn kết, tinh giản vận hành và thúc đẩy tác động của tổ chức.',
-                            author: 'Oliver Omnibus.',
-                            date: '12 Tháng 6, 2023',
-                        },
-                        2: {
-                            category: 'Truyền cảm hứng',
-                            title: 'Trao quyền cho tình nguyện viên: Ứng dụng công nghệ để quản lý hiệu quả',
-                            desc: 'Khám phá cách các hệ thống VMS trao quyền cho tình nguyện viên. Bài viết phân tích giao diện thân thiện, ứng dụng di động và công cụ giao tiếp giúp tuyển chọn, đào tạo và ghi nhận tình nguyện viên một cách liền mạch, mang lại trải nghiệm ý nghĩa hơn.',
-                            author: 'Liam Literary .',
-                            date: '12 Tháng 6, 2023',
-                        },
-                        3: {
-                            category: 'Hướng dẫn',
-                            title: 'Hiểu biết dựa trên dữ liệu: Khai thác sức mạnh của Hệ thống quản lý tình nguyện',
-                            desc: 'Tìm hiểu cách VMS tận dụng phân tích dữ liệu để ra quyết định chiến lược. Bài viết cho thấy VMS tạo ra hiểu biết về sở thích, chỉ số hiệu suất và xu hướng gắn kết, giúp tối ưu chương trình tình nguyện cho tác động tối đa.',
-                            author: 'Sofia Storyteller .',
-                            date: '12 Tháng 1, 2024',
-                        },
-                    },
                 },
                 contact: {
                     header: 'Liên hệ',
