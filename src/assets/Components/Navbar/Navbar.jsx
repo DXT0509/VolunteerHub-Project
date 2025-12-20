@@ -9,6 +9,7 @@ const Navbar = () => {
     displayName: "Demo User",
     email: "demo@example.com",
     photoURL: null, // nếu có avatar
+    role: "admin", // 'guest', 'volunteer', 'manager', 'admin'
   });
 
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +21,8 @@ const Navbar = () => {
   const notifRef = React.useRef(null);
   const [openManageMobile, setOpenManageMobile] = useState(false);
   const [openAdminMobile, setOpenAdminMobile] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const NOTIFICATIONS_URL =
     import.meta.env.VITE_NOTIFICATIONS_URL ||
@@ -93,7 +96,7 @@ const Navbar = () => {
   const role = user?.role || 'guest';
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 h-30 pt-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -115,7 +118,7 @@ const Navbar = () => {
             >
               {t('nav.home')}
             </NavLink>
-            <NavLink
+            {/* <NavLink
               to="/mycampaigns"
               className={({ isActive }) =>
                 isActive
@@ -124,7 +127,7 @@ const Navbar = () => {
               }
             >
               My Campaign
-            </NavLink>
+            </NavLink> */}
             <Link
               to="/#contact"
               className="text-gray-700 hover:text-blue-600"
@@ -156,11 +159,19 @@ const Navbar = () => {
             )}
             {/* Manager dropdown */}
             {role === 'manager' && (
-              <div className="relative group">
-                <button className="text-gray-700 hover:text-blue-600">
+              <div
+                className="relative"
+                onMouseEnter={() => setManageOpen(true)}
+                onMouseLeave={() => setManageOpen(false)}
+              >
+                <button
+                  className="text-gray-700 hover:text-blue-600"
+                  aria-haspopup="true"
+                  aria-expanded={manageOpen}
+                >
                   {t('nav.manage')}
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg hidden group-hover:block">
+                <div className={`absolute right-0 top-full w-48 bg-white border rounded-md shadow-lg ${manageOpen ? 'block' : 'hidden'} z-50`}>
                   <Link to="/manage/dashboard" className="block px-4 py-2 hover:bg-gray-100">{t('manage.dashboard')}</Link>
                   <Link to="/manage/volunteers" className="block px-4 py-2 hover:bg-gray-100">{t('manage.volunteers')}</Link>
                   <Link to="/manage/campaigns" className="block px-4 py-2 hover:bg-gray-100">{t('manage.campaigns')}</Link>
@@ -170,11 +181,19 @@ const Navbar = () => {
             )}
             {/* Admin dropdown */}
             {role === 'admin' && (
-              <div className="relative group">
-                <button className="text-gray-700 hover:text-blue-600">
+              <div
+                className="relative"
+                onMouseEnter={() => setAdminOpen(true)}
+                onMouseLeave={() => setAdminOpen(false)}
+              >
+                <button
+                  className="text-gray-700 hover:text-blue-600"
+                  aria-haspopup="true"
+                  aria-expanded={adminOpen}
+                >
                   {t('nav.admin')}
                 </button>
-                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg hidden group-hover:block">
+                <div className={`absolute right-0 top-full w-44 bg-white border rounded-md shadow-lg ${adminOpen ? 'block' : 'hidden'} z-50`}>
                   <Link to="/admin/panel" className="block px-4 py-2 hover:bg-gray-100">{t('adminMenu.panel')}</Link>
                   <Link to="/admin/settings" className="block px-4 py-2 hover:bg-gray-100">{t('adminMenu.settings')}</Link>
                 </div>
@@ -240,7 +259,7 @@ const Navbar = () => {
               </button>
               {notifOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-80 max-w-[22rem] rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                  className="absolute right-0 mt-2 w-80 max-w-[22rem] rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900 z-50"
                   role="menu"
                   aria-label="Notifications dropdown"
                 >
