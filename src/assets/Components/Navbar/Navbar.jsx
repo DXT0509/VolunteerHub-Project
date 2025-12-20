@@ -3,6 +3,8 @@ import { Link, NavLink } from "react-router-dom";
 import logo from "./logo.png"; // thay bằng logo của bạn
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { Dropdown } from "../dropdown/Dropdown";
+import { DropdownItem } from "../dropdown/DropdownItem";
 
 const Navbar = () => {
   const [user, setUser] = useState({
@@ -165,18 +167,18 @@ const Navbar = () => {
                 onMouseLeave={() => setManageOpen(false)}
               >
                 <button
-                  className="text-gray-700 hover:text-blue-600"
+                  className="dropdown-toggle text-gray-700 hover:text-blue-600"
                   aria-haspopup="true"
                   aria-expanded={manageOpen}
                 >
                   {t('nav.manage')}
                 </button>
-                <div className={`absolute right-0 top-full w-48 bg-white border rounded-md shadow-lg ${manageOpen ? 'block' : 'hidden'} z-50`}>
-                  <Link to="/manage/dashboard" className="block px-4 py-2 hover:bg-gray-100">{t('manage.dashboard')}</Link>
-                  <Link to="/manage/volunteers" className="block px-4 py-2 hover:bg-gray-100">{t('manage.volunteers')}</Link>
-                  <Link to="/manage/campaigns" className="block px-4 py-2 hover:bg-gray-100">{t('manage.campaigns')}</Link>
-                  <Link to="/manage/reports" className="block px-4 py-2 hover:bg-gray-100">{t('manage.reports')}</Link>
-                </div>
+                <Dropdown isOpen={manageOpen} onClose={() => setManageOpen(false)} className="right-0 w-48">
+                  <DropdownItem tag="a" to="/manage/dashboard">{t('manage.dashboard')}</DropdownItem>
+                  <DropdownItem tag="a" to="/manage/volunteers">{t('manage.volunteers')}</DropdownItem>
+                  <DropdownItem tag="a" to="/manage/campaigns">{t('manage.campaigns')}</DropdownItem>
+                  <DropdownItem tag="a" to="/manage/reports">{t('manage.reports')}</DropdownItem>
+                </Dropdown>
               </div>
             )}
             {/* Admin dropdown */}
@@ -187,16 +189,16 @@ const Navbar = () => {
                 onMouseLeave={() => setAdminOpen(false)}
               >
                 <button
-                  className="text-gray-700 hover:text-blue-600"
+                  className="dropdown-toggle text-gray-700 hover:text-blue-600"
                   aria-haspopup="true"
                   aria-expanded={adminOpen}
                 >
                   {t('nav.admin')}
                 </button>
-                <div className={`absolute right-0 top-full w-44 bg-white border rounded-md shadow-lg ${adminOpen ? 'block' : 'hidden'} z-50`}>
-                  <Link to="/admin/panel" className="block px-4 py-2 hover:bg-gray-100">{t('adminMenu.panel')}</Link>
-                  <Link to="/admin/settings" className="block px-4 py-2 hover:bg-gray-100">{t('adminMenu.settings')}</Link>
-                </div>
+                <Dropdown isOpen={adminOpen} onClose={() => setAdminOpen(false)} className="right-0 w-44">
+                  <DropdownItem tag="a" to="/admin/panel">{t('adminMenu.panel')}</DropdownItem>
+                  <DropdownItem tag="a" to="/admin/settings">{t('adminMenu.settings')}</DropdownItem>
+                </Dropdown>
               </div>
             )}
           </div>

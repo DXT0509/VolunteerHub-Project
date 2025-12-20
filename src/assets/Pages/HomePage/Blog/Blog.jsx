@@ -26,21 +26,19 @@ const Blog = () => {
                 />
               </a>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-rose-500 bg-rose-100 mt-9">
-                {" "}
-                Explanatory{" "}
+                {t('home.blog.items.1.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <a href="#" title="">
-                  Optimizing Engagement: The Evolution of Volunteer Management Systems
+                  {t('home.blog.items.1.title')}
                 </a>
               </p>
               <p className="mt-4 text-gray-500">
-                Delve into the dynamic landscape of Volunteer Management Systems (VMS). From traditional spreadsheets to modern   cloud-based solutions and here this blog explores how VMS have evolved to enhance volunteer engagement, streamline operations, and drive organizational impact.
+                {t('home.blog.items.1.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
               <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {" "}
-                Oliver Omnibus. June 12, 2023{" "}
+                {t('home.blog.items.1.author')} {t('home.blog.items.1.date')}
               </span>
             </div>
 
@@ -53,21 +51,19 @@ const Blog = () => {
                 />
               </a>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                {" "}
-                Inspirational{" "}
+                {t('home.blog.items.2.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <a href="#" title="">
-                  Empowering Volunteers: Leveraging Technology for Effective Volunteer Management
+                  {t('home.blog.items.2.title')}
                 </a>
               </p>
               <p className="mt-4 text-gray-500">
-                Uncover the ways in which Volunteer Management Systems empower volunteers. This blog examines how user-friendly interfaces, mobile apps, and communication tools provided by VMS facilitate seamless volunteer recruitment, training, and recognition, ultimately fostering a more fulfilling volunteer experience.
+                {t('home.blog.items.2.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
               <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {" "}
-                Liam Literary . June 12, 2023{" "}
+                {t('home.blog.items.2.author')} {t('home.blog.items.2.date')}
               </span>
             </div>
 
@@ -80,21 +76,19 @@ const Blog = () => {
                 />
               </a>
               <span className="inline-flex px-4 py-2 text-xs font-semibold tracking-widest uppercase rounded-full text-sky-500 bg-sky-100 mt-9">
-                {" "}
-                Guidance{" "}
+                {t('home.blog.items.3.category')}
               </span>
               <p className="mt-6 text-xl font-semibold">
                 <a href="#" title="">
-                  Data-Driven Insights: Harnessing the Power of Volunteer Management Systems
+                  {t('home.blog.items.3.title')}
                 </a>
               </p>
               <p className="mt-4 text-gray-500">
-                Learn how Volunteer Management Systems leverage data analytics to drive strategic decision-making. This blog illuminates how VMS generate valuable insights into volunteer preferences, performance metrics, and engagement trends, enabling organizations to optimize their volunteer programs for maximum impact.
+                {t('home.blog.items.3.desc')}
               </p>
               <div className="h-0 mt-6 mb-4 border-t-2 border-gray-200 border-dashed"></div>
               <span className="block text-sm font-bold tracking-widest text-gray-500 uppercase">
-                {" "}
-                Sofia Storyteller . January 12, 2024{" "}
+                {t('home.blog.items.3.author')} {t('home.blog.items.3.date')}
               </span>
             </div>
           </div>

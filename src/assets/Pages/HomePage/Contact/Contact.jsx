@@ -1,8 +1,58 @@
-import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import React from 'react';
 
 const Contact = () => {
   const { t } = useTranslation();
+  const [form, setForm] = React.useState({ name: '', email: '', message: '' });
+  const [sending, setSending] = React.useState(false);
+  const [feedback, setFeedback] = React.useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.message) {
+      setFeedback(t('home.contact.validationRequired') || 'Please fill all fields');
+      return;
+    }
+    setSending(true);
+    setFeedback('');
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    try {
+      if (serviceId && templateId && publicKey) {
+        const emailjs = await import('emailjs-com');
+        await emailjs.send(
+          serviceId,
+          templateId,
+          {
+            from_name: form.name,
+            from_email: form.email,
+            message: form.message,
+            to_email: 'thainguyenzeno@gmail.com',
+          },
+          publicKey
+        );
+        setFeedback(t('home.contact.success') || 'Your message has been sent.');
+        setForm({ name: '', email: '', message: '' });
+      } else {
+        const subject = encodeURIComponent(`${t('home.contact.subject') || 'New contact message'} - ${form.name}`);
+        const body = encodeURIComponent(`${form.message}\n\nFrom: ${form.name} <${form.email}>`);
+        window.location.href = `mailto:thainguyenzeno@gmail.com?subject=${subject}&body=${body}`;
+        setFeedback(t('home.contact.mailtoOpened') || 'Opening your email client...');
+      }
+    } catch (err) {
+      setFeedback(t('home.contact.error') || 'Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
   return (
     <div id="contact" className="mt-40 container mx-auto">
       <h2 data-aos="fade-right" data-aos-easing="linear" data-aos-duration="1500" className="inter text-5xl font-bold text-center ">{t('home.contact.header')}</h2>
@@ -113,7 +163,7 @@ const Contact = () => {
                       {t('home.contact.formDesc')}
                     </p>
 
-                    <form action="#" method="POST" className="mt-4">
+                    <form className="mt-4" onSubmit={handleSubmit}>
                       <div className="space-y-6">
                         <div>
                           <label className="text-base font-medium text-gray-900">
@@ -122,8 +172,10 @@ const Contact = () => {
                           <div className="mt-2.5 relative">
                             <input
                               type="text"
-                              name=""
-                              id=""
+                              name="name"
+                              id="contact-name"
+                              value={form.name}
+                              onChange={handleChange}
                               placeholder={t('home.contact.namePlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                             />
@@ -136,9 +188,11 @@ const Contact = () => {
                           </label>
                           <div className="mt-2.5 relative">
                             <input
-                              type="text"
-                              name=""
-                              id=""
+                              type="email"
+                              name="email"
+                              id="contact-email"
+                              value={form.email}
+                              onChange={handleChange}
                               placeholder={t('home.contact.emailPlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                             />
@@ -151,8 +205,10 @@ const Contact = () => {
                           </label>
                           <div className="mt-2.5 relative">
                             <textarea
-                              name=""
-                              id=""
+                              name="message"
+                              id="contact-message"
+                              value={form.message}
+                              onChange={handleChange}
                               placeholder={t('home.contact.messagePlaceholder')}
                               className="block w-full px-4 py-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-orange-500 focus:border-orange-500 caret-orange-500"
                               rows="4"
@@ -161,9 +217,12 @@ const Contact = () => {
                         </div>
 
                         <div>
-                          <Link className="inline-flex items-center justify-center w-full px-4 py-4 text-base font-semibold text-white transition-all duration-200 bg-[#59C6D2] border border-transparent rounded-md focus:outline-none hover:bg-[#59C6D2] focus:bg-[#59C6D2]">
-                            {t('home.contact.sendBtn')}
-                          </Link>
+                          <button type="submit" disabled={sending} className="inline-flex items-center justify-center w-full px-4 py-4 text-base font-semibold text-white transition-all duration-200 bg-[#59C6D2] border border-transparent rounded-md focus:outline-none hover:bg-[#59C6D2] focus:bg-[#59C6D2] disabled:opacity-60 disabled:cursor-not-allowed">
+                            {sending ? (t('common.sending') || 'Sending...') : t('home.contact.sendBtn')}
+                          </button>
+                          {feedback && (
+                            <p className="mt-3 text-sm text-gray-800">{feedback}</p>
+                          )}
                         </div>
                       </div>
                     </form>
