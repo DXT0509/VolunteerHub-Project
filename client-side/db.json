@@ -1,0 +1,105 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "title": "Tech Summit 2025",
+      "category": "Công nghệ",
+      "description": "Hội nghị công nghệ hàng đầu năm 2025",
+      "location": "Nhà văn hóa Thanh Niên",
+      "deadline": "2025-11-10T00:00:00.000Z",
+      "capacity": 20,
+      "manager_name": "admin",
+      "manager_mail": "manager@example.com",
+      "banner_url": "https://userpic.codeforces.org/887306/title/b450806e36caa423.jpg"
+    },
+    {
+      "id": 2,
+      "title": "Green Volunteer Day",
+      "category": "Môi trường",
+      "description": "Chiến dịch trồng cây phủ xanh thành phố",
+      "location": "Công viên Gia Định",
+      "deadline": "2025-11-14T00:00:00.000Z",
+      "capacity": 50,
+      "manager_name": "Minh Nguyen",
+      "manager_mail": "minhnguyen@example.com",
+      "banner_url": "https://images.unsplash.com/photo-1506765515384-028b60a970df"
+    },
+    {
+      "id": 3,
+      "title": "Blood Donation Drive",
+      "category": "Sức khỏe",
+      "description": "Chương trình hiến máu nhân đạo do Đoàn trường tổ chức",
+      "location": "Bệnh viện Chợ Rẫy",
+      "deadline": "2025-11-18T00:00:00.000Z",
+      "capacity": 100,
+      "manager_name": "Lan Tran",
+      "manager_mail": "lantran@example.com",
+      "banner_url": "https://images.unsplash.com/photo-1615461066841-6116e9f3d0e5"
+    },
+    {
+      "id": 4,
+      "title": "Charity Coding Marathon",
+      "category": "Công nghệ",
+      "description": "Cuộc thi lập trình gây quỹ từ thiện trong 48 giờ",
+      "location": "Đại học Bách Khoa TP.HCM",
+      "deadline": "2025-11-08T00:00:00.000Z",
+      "capacity": 30,
+      "manager_name": "Huy Le",
+      "manager_mail": "huy.le@example.com",
+      "banner_url": "https://images.unsplash.com/photo-1519389950473-47ba0277781c"
+    },
+    {
+      "id": 5,
+      "title": "Art for Hope Exhibition",
+      "category": "Nghệ thuật",
+      "description": "Triển lãm gây quỹ cho trẻ em khó khăn",
+      "location": "Nhà triển lãm Thành phố",
+      "deadline": "2025-11-13T00:00:00.000Z",
+      "capacity": 40,
+      "manager_name": "Thao Vu",
+      "manager_mail": "thao.vu@example.com",
+      "banner_url": "https://images.unsplash.com/photo-1529101091764-c3526daf38fe"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "123456",
+      "full_name": "System Administrator",
+      "avatar_url": "https://i.pravatar.cc/150?img=1",
+      "slug": "admin",
+      "phone": "0901234567",
+      "is_active": true,
+      "created_at": "2025-01-01T08:00:00Z",
+      "updated_at": "2025-01-10T09:30:00Z"
+    },
+    {
+      "id": 2,
+      "username": "johndoe",
+      "email": "johndoe@example.com",
+      "password": "password",
+      "full_name": "John Doe",
+      "avatar_url": "https://i.pravatar.cc/150?img=2",
+      "slug": "john-doe",
+      "phone": "0912345678",
+      "is_active": true,
+      "created_at": "2025-02-15T10:20:00Z",
+      "updated_at": "2025-02-16T11:00:00Z"
+    },
+    {
+      "id": 3,
+      "username": "janedoe",
+      "email": "janedoe@example.com",
+      "password": "password",
+      "full_name": "Jane Doe",
+      "avatar_url": "https://i.pravatar.cc/150?img=3",
+      "slug": "jane-doe",
+      "phone": "0987654321",
+      "is_active": false,
+      "created_at": "2025-03-05T12:00:00Z",
+      "updated_at": "2025-03-07T13:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# Node
+node_modules/
+client-side/node_modules/
+dist/
+.env
+.env.local
+
+# Prisma
+prisma/dev.db
+prisma/migrations/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+
+# Runtime uploads (do not commit user-uploaded files)
+src/uploads/
+client-side/uploads/
+client-side/src/assets/uploads/
