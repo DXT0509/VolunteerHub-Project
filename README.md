@@ -1,45 +1,117 @@
-# VolunteerHub Backend
+# 🌟 VolunteerHub
 
-VolunteerHub là hệ thống quản lý và tổ chức hoạt động tình nguyện, phát triển bằng **Node.js + TypeScript + Express + Prisma + MySQL**.
+> Nền tảng kết nối tình nguyện viên với các tổ chức và hoạt động cộng đồng ý nghĩa.
 
 ---
 
-## 🚀 Công nghệ
+## 📌 Giới thiệu
 
-- Node.js / Express / TypeScript
-- Prisma ORM (MySQL)
-- JWT Authentication
-- Bcrypt password hashing
-- Modular architecture
+**VolunteerHub** là một ứng dụng web giúp:
+
+* Kết nối tình nguyện viên với các tổ chức
+* Quản lý các hoạt động tình nguyện
+* Tăng cường sự tham gia cộng đồng
+
+Dự án giúp các tổ chức dễ dàng tìm kiếm tình nguyện viên, đồng thời giúp người dùng khám phá và tham gia các hoạt động phù hợp.
+
+---
+
+## 🚀 Tính năng
+
+* 🔍 Tìm kiếm các hoạt động tình nguyện
+* 👤 Đăng ký / đăng nhập tài khoản
+* 📅 Tạo và quản lý sự kiện
+* 📊 Bảng điều khiển cho tổ chức
+* 💬 Giao tiếp giữa tình nguyện viên và tổ chức
+
+---
+
+## 🛠️ Công nghệ sử dụng
+
+* **Frontend:** (React / Vue / HTML-CSS-JS)
+* **Backend:** (Node.js / Express / Django / Spring Boot)
+* **Database:** (MongoDB / MySQL / PostgreSQL)
+* **Khác:** REST API, JWT Authentication
+
+> 👉 Hãy cập nhật lại theo công nghệ bạn đang dùng
 
 ---
 
 ## ⚙️ Cài đặt
 
-### 1️⃣ Clone repo
-
 ```bash
-git clone https://github.com/<your-username>/volunteerhub-backend.git
-cd volunteerhub-backend
+# Clone repository
+git clone https://github.com/DXT0509/VolunteerHub-Project.git
+
+# Di chuyển vào thư mục project
+cd VolunteerHub-Project
+
+# Cài đặt dependencies
+npm install
 ```
 
-npm install
-cp .env.example .env
+---
 
-Cập nhật các giá trị trong .env:
+## ▶️ Chạy dự án
 
-DATABASE_URL="mysql://root:@localhost:3306/volunteerhub"
-JWT_SECRET="volunteerhub_secret"
-PORT=4000
+```bash
+npm start
+```
 
-Tạo database & migrate:
-npx prisma migrate dev --name init
+Sau đó mở trình duyệt tại:
 
-Seed dữ liệu (tạo roles mặc định):
-npx ts-node prisma/seed.ts
+```
+http://localhost:3000
+```
 
-Chạy server:
-npm run dev
+---
 
-Server chạy tại:
-👉 http://localhost:4000
+## 📁 Cấu trúc thư mục
+
+```
+VolunteerHub-Project/
+│── src/
+│── public/
+│── backend/
+│── package.json
+│── README.md
+```
+
+---
+
+## 🤝 Đóng góp
+
+Rất hoan nghênh đóng góp từ cộng đồng!
+
+1. Fork repository
+2. Tạo branch mới (`feature/ten-tinh-nang`)
+3. Commit thay đổi
+4. Push lên GitHub
+5. Tạo Pull Request
+
+---
+
+## 📌 Kế hoạch phát triển
+
+* [ ] Thêm chat realtime
+* [ ] Cải thiện UI/UX
+* [ ] Phiên bản mobile
+* [ ] Deploy (AWS / Vercel)
+
+---
+
+## 📄 Giấy phép
+
+Dự án được phát hành theo giấy phép **MIT License**.
+
+---
+
+## 👨‍💻 Tác giả
+
+* GitHub: https://github.com/DXT0509
+
+---
+
+## ⭐ Ủng hộ
+
+Nếu bạn thấy project hữu ích, hãy ⭐ repo để ủng hộ nhé!
