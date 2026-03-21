@@ -66,19 +66,6 @@ http://localhost:3000
 
 ---
 
-## 📁 Cấu trúc thư mục
-
-```
-VolunteerHub-Project/
-│── src/
-│── public/
-│── backend/
-│── package.json
-│── README.md
-```
-
----
-
 ## 🤝 Đóng góp
 
 Rất hoan nghênh đóng góp từ cộng đồng!
@@ -97,18 +84,6 @@ Rất hoan nghênh đóng góp từ cộng đồng!
 * [ ] Cải thiện UI/UX
 * [ ] Phiên bản mobile
 * [ ] Deploy (AWS / Vercel)
-
----
-
-## 📄 Giấy phép
-
-Dự án được phát hành theo giấy phép **MIT License**.
-
----
-
-## 👨‍💻 Tác giả
-
-* GitHub: https://github.com/DXT0509
 
 ---
 
