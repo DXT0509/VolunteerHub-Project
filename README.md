@@ -5,7 +5,7 @@
 
 ## 🎥 Demo Video
 
-[👉 Xem video giới thiệu VolunteerHub] (https://www.youtube.com/watch?v=w5QqN3Wsd00&feature=youtu.be)
+[👉 Xem video giới thiệu VolunteerHub](https://www.youtube.com/watch?v=w5QqN3Wsd00&feature=youtu.be)
 
 ## 📌 Giới thiệu
 
